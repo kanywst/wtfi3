@@ -1,0 +1,218 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>wtfi3</title>
+<style>
+  :root{
+    --bg:#fbf7ff; --card:#ffffff; --ink:#4a4560; --muted:#9a94ad; --line:#efe9f6;
+    --accent:#b39ddb; --accent2:#8fd9c8; --peach:#ffb4a2; --lav:#c8b6ff;
+    --tx:#f5a3b7; --rx:#8fd9c8; --shadow:0 6px 22px rgba(150,120,190,.13);
+    --radius:18px;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --bg:#191424; --card:#221a33; --ink:#ece7f5; --muted:#8b81a5; --line:#2e2440;
+      --accent:#c8b6ff; --accent2:#8fd9c8; --shadow:0 6px 22px rgba(0,0,0,.35);
+    }
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);
+    font:14px/1.55 "Hiragino Maru Gothic ProN","Quicksand",ui-rounded,"SF Pro Rounded",system-ui,-apple-system,sans-serif}
+  a{color:var(--accent)}
+  header{padding:18px 22px;display:flex;gap:14px;flex-wrap:wrap;align-items:center}
+  .logo{font-size:22px;font-weight:700;letter-spacing:.5px;color:var(--accent)}
+  .logo b{color:var(--accent2)}
+  .tag{color:var(--muted);font-size:12px}
+  .stats{display:flex;gap:8px;flex-wrap:wrap;margin-left:auto;align-items:center}
+  .pill{background:var(--card);border:1px solid var(--line);border-radius:999px;padding:5px 12px;font-size:12px;box-shadow:var(--shadow)}
+  .pill b{color:var(--ink)}.pill span{color:var(--muted)}
+  .mode{border:none;font-weight:700}
+  .mode.passive{background:#eef7f3;color:#3aa88b}
+  .mode.spoof{background:#ffeef0;color:#e5738a}
+  @media (prefers-color-scheme: dark){.mode.passive{background:#1e3a33;color:#8fd9c8}.mode.spoof{background:#3a2230;color:#ffb4c4}}
+  #lang{cursor:pointer;background:var(--card);border:1px solid var(--line);border-radius:999px;padding:5px 12px;font-size:12px;color:var(--ink);box-shadow:var(--shadow);font-family:inherit}
+  #lang:hover{border-color:var(--accent)}
+  main{display:grid;grid-template-columns:1fr 1fr;gap:16px;padding:6px 22px 26px}
+  @media(max-width:860px){main{grid-template-columns:1fr}}
+  section{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;display:flex;flex-direction:column}
+  section.wide{grid-column:1 / -1}
+  h2{font-size:12px;margin:0;padding:13px 18px;color:var(--muted);font-weight:700;letter-spacing:.4px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center}
+  h2 .count{background:var(--bg);color:var(--accent);border-radius:999px;padding:2px 9px;font-size:11px}
+  .scroll{overflow:auto;max-height:330px}
+  table{width:100%;border-collapse:collapse;font-size:13px}
+  th,td{text-align:left;padding:8px 18px;white-space:nowrap;border-bottom:1px solid var(--line)}
+  th{position:sticky;top:0;background:var(--card);color:var(--muted);font-weight:600;font-size:11px}
+  td.num{text-align:right;font-variant-numeric:tabular-nums}
+  tbody tr{transition:background .15s}
+  tbody tr:hover td{background:var(--bg)}
+  tbody tr:last-child td{border-bottom:none}
+  .host{color:var(--accent);font-weight:600}
+  .tx{color:var(--tx);font-weight:600}.rx{color:var(--rx);font-weight:600}.mut{color:var(--muted)}
+  .chip{padding:2px 9px;border-radius:999px;font-size:11px;background:var(--bg);color:var(--muted);font-weight:600}
+  .chip.tcp{background:#eef1ff;color:#7c8cff}.chip.udp{background:#eafaf4;color:#3aa88b}.chip.icmp{background:#fff2ea;color:#e59a6a}
+  @media (prefers-color-scheme: dark){.chip.tcp{background:#242a4a;color:#a9b6ff}.chip.udp{background:#1e3a33;color:#8fd9c8}.chip.icmp{background:#3a2c22;color:#ffc59a}}
+  .bar{height:6px;background:var(--bg);border-radius:999px;overflow:hidden;min-width:70px}
+  .bar>i{display:block;height:100%;border-radius:999px;background:linear-gradient(90deg,var(--lav),var(--accent2))}
+  .empty{padding:22px 18px;color:var(--muted);text-align:center}
+  #chart{width:100%;height:130px;display:block}
+  footer{padding:10px 22px 26px;color:var(--muted);font-size:11px;text-align:center}
+</style>
+</head>
+<body>
+<header>
+  <div>
+    <div class="logo">wtfi<b>3</b></div>
+    <div class="tag" data-i18n="tagline"></div>
+  </div>
+  <div class="stats">
+    <span class="pill"><span data-i18n="iface"></span> <b id="iface">-</b></span>
+    <span class="pill"><span data-i18n="host"></span> <b id="selfip">-</b></span>
+    <span class="pill"><span data-i18n="gw"></span> <b id="gw">-</b></span>
+    <span class="pill"><span data-i18n="total"></span> <b id="total">0</b></span>
+    <span class="pill"><span data-i18n="up"></span> <b id="up">0</b></span>
+    <span class="pill mode passive" id="mode">passive</span>
+    <button id="lang">日本語</button>
+  </div>
+</header>
+<main>
+  <section class="wide">
+    <h2><span data-i18n="throughput"></span><span class="count" id="bw">0</span></h2>
+    <canvas id="chart" height="130"></canvas>
+  </section>
+  <section>
+    <h2><span data-i18n="devices"></span><span class="count" id="ndev">0</span></h2>
+    <div class="scroll">
+      <table><thead><tr>
+        <th data-i18n="th_ip"></th><th data-i18n="th_vendor"></th><th data-i18n="th_mac"></th>
+        <th class="num" data-i18n="th_up"></th><th class="num" data-i18n="th_down"></th>
+      </tr></thead><tbody id="devs"></tbody></table>
+    </div>
+  </section>
+  <section>
+    <h2><span data-i18n="lookups"></span><span class="count" id="ndns">0</span></h2>
+    <div class="scroll">
+      <table><thead><tr>
+        <th data-i18n="th_client"></th><th data-i18n="th_name"></th>
+        <th data-i18n="th_type"></th><th data-i18n="th_answer"></th>
+      </tr></thead><tbody id="dns"></tbody></table>
+    </div>
+  </section>
+  <section class="wide">
+    <h2><span data-i18n="flows"></span><span class="count" id="nflow">0</span></h2>
+    <div class="scroll" style="max-height:420px">
+      <table><thead><tr>
+        <th data-i18n="th_src"></th><th data-i18n="th_dst"></th><th data-i18n="th_proto"></th>
+        <th class="num" data-i18n="th_port"></th><th data-i18n="th_sni"></th>
+        <th class="num" data-i18n="th_bytes"></th><th class="num" data-i18n="th_pkts"></th><th></th>
+      </tr></thead><tbody id="flows"></tbody></table>
+    </div>
+  </section>
+</main>
+<footer data-i18n="footer"></footer>
+
+<script>
+const I18N = {
+  en: {
+    tagline:"who is talking to whom on your WiFi",
+    iface:"iface", host:"host", gw:"gateway", total:"total", up:"uptime",
+    throughput:"Throughput", devices:"Devices", lookups:"DNS lookups", flows:"Top flows",
+    th_ip:"IP", th_vendor:"vendor", th_mac:"MAC", th_up:"up", th_down:"down",
+    th_client:"client", th_name:"name", th_type:"type", th_answer:"answer",
+    th_src:"source", th_dst:"destination", th_proto:"proto", th_port:"port",
+    th_sni:"hostname (SNI)", th_bytes:"bytes", th_pkts:"pkts",
+    peak:"peak", none_dev:"no devices yet", none_flow:"no flows yet",
+    none_dns:"no DNS seen (encrypted DoH/DoT?)",
+    footer:"Refreshed every second. TLS payloads are not decrypted — only metadata (destination, volume, DNS, SNI) is shown.",
+    lang:"日本語"
+  },
+  ja: {
+    tagline:"あなたのWiFiで誰が誰と通信しているか",
+    iface:"インターフェース", host:"自分", gw:"ゲートウェイ", total:"合計", up:"稼働",
+    throughput:"通信量", devices:"デバイス", lookups:"DNS名前解決", flows:"フロー上位",
+    th_ip:"IP", th_vendor:"メーカー", th_mac:"MAC", th_up:"上り", th_down:"下り",
+    th_client:"端末", th_name:"名前", th_type:"種別", th_answer:"応答",
+    th_src:"送信元", th_dst:"宛先", th_proto:"プロトコル", th_port:"ポート",
+    th_sni:"ホスト名 (SNI)", th_bytes:"バイト", th_pkts:"パケット",
+    peak:"ピーク", none_dev:"デバイス未検出", none_flow:"フロー未検出",
+    none_dns:"DNSなし（DoH/DoTで暗号化？）",
+    footer:"1秒ごとに更新。TLSの中身は復号しません — 表示はメタデータ（宛先・通信量・DNS・SNI）のみ。",
+    lang:"English"
+  }
+};
+let lang = (()=>{ try{return localStorage.getItem("wtfi3_lang")||"en"}catch(e){return "en"} })();
+const T = () => I18N[lang];
+
+function applyLang(){
+  document.documentElement.lang = lang;
+  document.querySelectorAll("[data-i18n]").forEach(el=>{ el.textContent = T()[el.dataset.i18n]||el.dataset.i18n; });
+  el("lang").textContent = T().lang;
+}
+el("lang").onclick = ()=>{ lang = lang==="en"?"ja":"en"; try{localStorage.setItem("wtfi3_lang",lang)}catch(e){} applyLang(); tick(); };
+
+function el(id){return document.getElementById(id)}
+const fmtB = n => n>=1e9?(n/1e9).toFixed(2)+"G":n>=1e6?(n/1e6).toFixed(2)+"M":n>=1e3?(n/1e3).toFixed(1)+"k":Math.round(n)+"";
+const esc = s => (s||"").replace(/[&<>]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]));
+
+function drawChart(series){
+  const cv=el("chart"), ctx=cv.getContext("2d");
+  const w=cv.clientWidth||600, h=130, dpr=devicePixelRatio||1;
+  if(cv.width!==Math.round(w*dpr)){cv.width=w*dpr;cv.height=h*dpr;}
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+  ctx.clearRect(0,0,w,h);
+  const cs=getComputedStyle(document.body);
+  const line=cs.getPropertyValue("--line"), acc=cs.getPropertyValue("--accent").trim();
+  const max=Math.max(1,...series);
+  el("bw").textContent = series.length? fmtB(series[series.length-1])+"B/s · "+T().peak+" "+fmtB(max)+"B/s" : "0";
+  ctx.strokeStyle=line;ctx.lineWidth=1;
+  for(let i=1;i<4;i++){const y=h*i/4;ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(w,y);ctx.stroke();}
+  if(!series.length) return;
+  const n=120, step=w/(n-1), off=n-series.length;
+  const path=(close)=>{ctx.beginPath();series.forEach((v,i)=>{const x=(off+i)*step,y=h-(v/max)*(h-10)-5;i?ctx.lineTo(x,y):ctx.moveTo(x,y);});
+    if(close){ctx.lineTo((off+series.length-1)*step,h);ctx.lineTo(off*step,h);ctx.closePath();}};
+  path(true);
+  const g=ctx.createLinearGradient(0,0,0,h);g.addColorStop(0,"rgba(179,157,219,.45)");g.addColorStop(1,"rgba(179,157,219,0)");
+  ctx.fillStyle=g;ctx.fill();
+  path(false);ctx.strokeStyle=acc;ctx.lineWidth=2;ctx.lineJoin="round";ctx.stroke();
+}
+
+async function tick(){
+  let s; try{ s=await (await fetch("/api/state")).json(); }catch(e){ return; }
+  el("iface").textContent=s.iface; el("selfip").textContent=s.self_ip;
+  el("gw").textContent=s.gateway||"-";
+  el("total").textContent=s.total_mb.toFixed(1)+" MB";
+  el("up").textContent=Math.round(s.uptime_sec)+"s";
+  const m=el("mode");
+  m.className="pill mode "+(s.spoof?"spoof":"passive");
+  m.textContent=s.spoof?("MITM"+(s.spoof_list&&s.spoof_list.length?" ×"+s.spoof_list.length:"")):"passive";
+
+  const devs=s.devices||[]; el("ndev").textContent=devs.length;
+  el("devs").innerHTML = devs.length? devs.map(d=>`<tr>
+    <td class="host">${esc(d.ip)||"<span class=mut>?</span>"}</td>
+    <td>${esc(d.vendor)}</td><td class="mut">${esc(d.mac)}</td>
+    <td class="num tx">${fmtB(d.tx_bytes)}</td><td class="num rx">${fmtB(d.rx_bytes)}</td></tr>`).join("")
+    : `<tr><td colspan=5 class=empty>${T().none_dev}</td></tr>`;
+
+  const flows=s.flows||[]; el("nflow").textContent=flows.length;
+  const max=Math.max(1,...flows.map(f=>f.bytes));
+  el("flows").innerHTML = flows.length? flows.map(f=>`<tr>
+    <td>${esc(f.src)}</td><td class="mut">${esc(f.dst)}</td>
+    <td><span class="chip ${f.proto}">${esc(f.proto)}</span></td><td class="num">${f.dst_port||""}</td>
+    <td class="host">${esc(f.sni)||""}</td>
+    <td class="num">${fmtB(f.bytes)}</td><td class="num mut">${f.packets}</td>
+    <td><div class="bar"><i style="width:${(f.bytes/max*100).toFixed(1)}%"></i></div></td></tr>`).join("")
+    : `<tr><td colspan=8 class=empty>${T().none_flow}</td></tr>`;
+
+  const dns=s.dns||[]; el("ndns").textContent=dns.length;
+  el("dns").innerHTML = dns.length? dns.map(d=>`<tr>
+    <td class="mut">${esc(d.client)}</td><td class="host">${esc(d.name)}</td>
+    <td><span class="chip">${esc(d.type)}</span></td><td class="mut">${esc(d.answer)}</td></tr>`).join("")
+    : `<tr><td colspan=4 class=empty>${T().none_dns}</td></tr>`;
+
+  drawChart(s.series||[]);
+}
+applyLang(); tick(); setInterval(tick,1000);
+</script>
+</body>
+</html>

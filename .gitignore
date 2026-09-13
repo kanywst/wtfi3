@@ -1,0 +1,14 @@
+# build output
+/wtfi3
+/dist/
+
+# captures
+*.pcap
+
+# coverage
+*.out
+coverage.txt
+
+# OS / editor
+.DS_Store
+*.swp
