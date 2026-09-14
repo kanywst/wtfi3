@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+## [0.1.1] - 2026-09-14
+
 ### Added
 
 - TCP/IP primer documentation (English and Japanese) for readers new to networking.
@@ -13,6 +15,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 ### Changed
 
 - Removed hard-wrapping and em dashes from all Markdown docs.
+- Bumped CI actions: `checkout`, `setup-go`, `upload-artifact`, `download-artifact`, and `golangci-lint-action` to their latest major versions.
 
 ## [0.1.0] - 2026-09-13
 
@@ -28,5 +31,6 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - Optional packet dump to `.pcap` (`-w`) for analysis in Wireshark.
 - Dashboard internationalization: English default with a Japanese toggle.
 
-[Unreleased]: https://github.com/kanywst/wtfi3/compare/v0.1.0...HEAD
+[Unreleased]: https://github.com/kanywst/wtfi3/compare/v0.1.1...HEAD
+[0.1.1]: https://github.com/kanywst/wtfi3/compare/v0.1.0...v0.1.1
 [0.1.0]: https://github.com/kanywst/wtfi3/releases/tag/v0.1.0
