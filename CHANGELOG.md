@@ -6,11 +6,17 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+## [0.4.0] - 2026-09-15
+
 ### Added
 
 - Simple view: manual device nicknames (click "rename" on a card; stored per device in the browser).
 - Simple view: a per-device recent-activity timeline showing what each device was doing over the last minute, colored by category.
 - Expanded the service dictionary with new categories (AI assistants, search, news, maps, finance, food delivery) and many more services (ChatGPT, Claude, Gemini, ABEMA, Disney+, LINE, Zoom, PayPay, Uber Eats, and others).
+
+### Changed
+
+- The rename button uses event delegation instead of an inline `onclick`, so dashboard safety no longer depends on a device key's character set.
 
 ## [0.3.0] - 2026-09-14
 
@@ -65,7 +71,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - Optional packet dump to `.pcap` (`-w`) for analysis in Wireshark.
 - Dashboard internationalization: English default with a Japanese toggle.
 
-[Unreleased]: https://github.com/kanywst/wtfi3/compare/v0.3.0...HEAD
+[Unreleased]: https://github.com/kanywst/wtfi3/compare/v0.4.0...HEAD
+[0.4.0]: https://github.com/kanywst/wtfi3/compare/v0.3.0...v0.4.0
 [0.3.0]: https://github.com/kanywst/wtfi3/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/kanywst/wtfi3/compare/v0.1.1...v0.2.0
 [0.1.1]: https://github.com/kanywst/wtfi3/compare/v0.1.0...v0.1.1
