@@ -1,33 +1,24 @@
 # wtfi3
 
-**wtfi3** shows you who is talking to whom on a WiFi network you administer. Connect
-to your own network, run one binary, open a browser, and watch every device's flows,
-DNS lookups, destination hostnames, and bandwidth in real time.
+**wtfi3** shows you who is talking to whom on a WiFi network you administer. Connect to your own network, run one binary, open a browser, and watch every device's flows, DNS lookups, destination hostnames, and bandwidth in real time.
 
-It is a passive/metadata visualizer, not a wiretap: TLS payloads are never decrypted.
-What you get is the shape of the traffic — endpoints, volume, protocols, DNS names,
-and TLS SNI hostnames.
+It is a passive/metadata visualizer, not a wiretap: TLS payloads are never decrypted. What you get is the shape of the traffic: endpoints, volume, protocols, DNS names, and TLS SNI hostnames.
 
-[日本語版 README](README.ja.md) · [How it works (network internals)](docs/how-it-works.md)
+[日本語版 README](README.ja.md) · [TCP/IP primer](docs/tcp-ip-primer.md) · [How it works (network internals)](docs/how-it-works.md)
 
 ## What you can see
 
-- **Devices** — every host on the LAN with IP, MAC, vendor (from the embedded IEEE
-  OUI database), and up/down byte counts.
-- **Top flows** — source to destination, protocol, port, destination hostname (SNI),
-  bytes, and packet counts.
-- **DNS lookups** — which client resolved which name, and the answer.
-- **Throughput** — a live bandwidth graph of the last two minutes.
+- **Devices**: every host on the LAN with IP, MAC, vendor (from the embedded IEEE OUI database), and up/down byte counts.
+- **Top flows**: source to destination, protocol, port, destination hostname (SNI), bytes, and packet counts.
+- **DNS lookups**: which client resolved which name, and the answer.
+- **Throughput**: a live bandwidth graph of the last two minutes.
 
 ## What you cannot see
 
-- **Encrypted payloads.** HTTPS/TLS content stays encrypted. You can tell that a
-  device is watching YouTube (from SNI/DNS), not which video.
-- **Other devices' traffic without MITM.** On a switched network you only receive
-  your own unicast plus broadcast/multicast. Seeing other devices requires the
-  `-spoof` mode described below.
+- **Encrypted payloads.** HTTPS/TLS content stays encrypted. You can tell that a device is watching YouTube (from SNI/DNS), not which video.
+- **Other devices' traffic without MITM.** On a switched network you only receive your own unicast plus broadcast/multicast. Seeing other devices requires the `-spoof` mode described below.
 
-See [docs/how-it-works.md](docs/how-it-works.md) for the full explanation with diagrams.
+New to networking? Start with the [TCP/IP primer](docs/tcp-ip-primer.md), then read [how wtfi3 works](docs/how-it-works.md) for the full explanation with diagrams.
 
 ## Requirements
 
@@ -40,7 +31,7 @@ See [docs/how-it-works.md](docs/how-it-works.md) for the full explanation with d
 ```bash
 git clone https://github.com/kanywst/wtfi3.git
 cd wtfi3
-make build        # produces ./wtfi3 with version stamped from git
+make build
 ```
 
 Or with the Go toolchain directly:
@@ -66,8 +57,7 @@ sudo ./wtfi3 -i en0 -spoof -w capture.pcap
 ./wtfi3 -r capture.pcap
 ```
 
-Then open <http://localhost:8080>. The dashboard defaults to English; use the toggle
-in the header to switch to Japanese.
+Then open <http://localhost:8080>. The dashboard defaults to English; use the toggle in the header to switch to Japanese.
 
 ### Flags
 
@@ -84,10 +74,7 @@ in the header to switch to Japanese.
 
 ## Legal and ethical use
 
-ARP spoofing is an active man-in-the-middle attack. Run `-spoof` only on networks you
-own or have explicit written authorization to test. Intercepting traffic on networks
-you do not control is illegal in most jurisdictions. The authors accept no liability
-for misuse.
+ARP spoofing is an active man-in-the-middle attack. Run `-spoof` only on networks you own or have explicit written authorization to test. Intercepting traffic on networks you do not control is illegal in most jurisdictions. The authors accept no liability for misuse.
 
 ## Development
 

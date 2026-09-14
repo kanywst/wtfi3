@@ -26,8 +26,7 @@ go run hack/gensample.go /tmp/sample.pcap
 
 ## Commit messages
 
-This project follows [Conventional Commits](https://www.conventionalcommits.org/).
-The type prefix drives the changelog and the next version number.
+This project follows [Conventional Commits](https://www.conventionalcommits.org/). The type prefix drives the changelog and the next version number.
 
 ```text
 feat(dashboard): add per-device sparkline
@@ -45,17 +44,14 @@ Keep one logical change per commit. Do not mix refactors with behavior changes.
 
 ## Versioning and releases
 
-wtfi3 uses [Semantic Versioning](https://semver.org/). Releases are cut from
-signed, annotated git tags:
+wtfi3 uses [Semantic Versioning](https://semver.org/). Releases are cut from signed, annotated git tags:
 
 ```bash
 git tag -s v0.2.0 -m "v0.2.0"
 git push origin v0.2.0
 ```
 
-Pushing a `v*` tag triggers the release workflow, which builds per-OS binaries and
-attaches them to the GitHub release. Update `CHANGELOG.md` in the same commit that
-prepares the release.
+Pushing a `v*` tag triggers the release workflow, which builds per-OS binaries and attaches them to the GitHub release. Update `CHANGELOG.md` in the same commit that prepares the release.
 
 ## Pull requests
 

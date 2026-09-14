@@ -1,4 +1,4 @@
-// wtfi3 — WiFi flow visualizer.
+// wtfi3 - WiFi flow visualizer.
 //
 // Visualize the traffic on a WiFi network you administer. Two modes:
 //   - passive: your own Mac's traffic plus broadcast/multicast only.
