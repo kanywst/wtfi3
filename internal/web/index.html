@@ -61,13 +61,19 @@
   footer{padding:10px 22px 26px;color:var(--muted);font-size:11px;text-align:center}
 
   /* simple mode */
-  .cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:16px}
+  .cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:16px}
   .dev{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);padding:16px 18px}
   .dev .top{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}
   .dev .name{font-size:16px;font-weight:700;color:var(--ink)}
   .dev .ip{font-size:11px;color:var(--muted)}
+  .dev .rename{cursor:pointer;font-size:11px;color:var(--muted);border:1px solid var(--line);border-radius:999px;padding:1px 8px;background:none;font-family:inherit}
+  .dev .rename:hover{border-color:var(--accent);color:var(--accent)}
   .dev .bw{margin-left:auto;font-size:11px;color:var(--muted);font-variant-numeric:tabular-nums}
-  .dev .doing{margin:8px 0 12px;font-size:13px;color:var(--ink);line-height:1.5}
+  .dev .doing{margin:8px 0 10px;font-size:13px;color:var(--ink);line-height:1.5}
+  .tl{display:flex;gap:2px;height:16px;margin:0 0 12px;align-items:stretch}
+  .tl .seg{flex:1 1 0;border-radius:2px;min-width:0}
+  .tl .seg.idle{background:var(--bg)}
+  .tl-label{font-size:10px;color:var(--muted);margin:-6px 0 10px}
   .svc{display:flex;flex-direction:column;gap:6px}
   .svc .row{display:flex;align-items:center;gap:8px}
   .svc .cat{font-size:10px;font-weight:700;padding:2px 8px;border-radius:999px;white-space:nowrap}
@@ -81,6 +87,12 @@
   .cat-gaming{background:#eee6ff;color:#7c5cff}
   .cat-cloud{background:#eef1f5;color:#6b7a90}
   .cat-dev{background:#e9eef2;color:#55707f}
+  .cat-ai{background:#e0f7f5;color:#0f9b96}
+  .cat-search{background:#e7f0fb;color:#3f7fce}
+  .cat-news{background:#fdeee8;color:#c0664f}
+  .cat-maps{background:#e8f7ee;color:#3aa86b}
+  .cat-finance{background:#fbf3dc;color:#b8912a}
+  .cat-food{background:#fdeee2;color:#e07a3f}
   .cat-ads{background:#f2eef0;color:#9a8a92}
   .cat-adult{background:#fde6ea;color:#c94f6d}
   .cat-other{background:var(--bg);color:var(--muted)}
@@ -89,7 +101,10 @@
     .cat-email{background:#232a4a;color:#a9baff}.cat-social{background:#2c2246;color:#c9a9ff}
     .cat-music{background:#1e3a2e;color:#8fe0b6}.cat-messaging{background:#1c3540;color:#8fd4ef}
     .cat-gaming{background:#282246;color:#b6a9ff}.cat-cloud{background:#2a3038;color:#a9bccf}
-    .cat-dev{background:#243038;color:#9fc0cf}.cat-ads{background:#302a2e;color:#c7b3bd}
+    .cat-dev{background:#243038;color:#9fc0cf}.cat-ai{background:#123634;color:#7fe3dd}
+    .cat-search{background:#1c2c44;color:#9fc2f0}.cat-news{background:#352019;color:#f0a78f}
+    .cat-maps{background:#173626;color:#8fe0b0}.cat-finance{background:#332c14;color:#e6c86a}
+    .cat-food{background:#33231a;color:#f0b48a}.cat-ads{background:#302a2e;color:#c7b3bd}
     .cat-adult{background:#3a2028;color:#f0a0b4}.cat-other{background:var(--bg);color:var(--muted)}
   }
 </style>
@@ -172,13 +187,17 @@ const I18N = {
     view_simple:"Simple view", view_detailed:"Detailed view",
     unknown_dev:"Unknown device", this_dev:"This Mac", router:"Router",
     doing_prefix:"Looks like:", quiet:"quiet, no recognizable services yet", up_short:"up", down_short:"down",
-    dns_only:"looked up only",
+    dns_only:"looked up only", rename:"rename", rename_prompt:"Name for this device (leave blank to clear):",
+    recent:"recent activity", idle:"idle",
     cat:{video:"Video",shopping:"Shopping",email:"Email",social:"Social",music:"Music",
-      messaging:"Messaging",gaming:"Gaming",cloud:"Cloud/Sync",dev:"Developer",
+      messaging:"Messaging",gaming:"Gaming",cloud:"Cloud/Sync",dev:"Developer",ai:"AI",
+      search:"Search",news:"News",maps:"Maps",finance:"Finance",food:"Food delivery",
       ads:"Ads/Telemetry",adult:"Adult",other:"Other"},
     act:{video:"watching video",shopping:"shopping",email:"checking email",social:"on social media",
       music:"listening to music",messaging:"messaging",gaming:"gaming",cloud:"syncing with cloud",
-      dev:"developer traffic",ads:"ads and telemetry",adult:"adult sites",other:"browsing"}
+      dev:"developer traffic",ai:"using an AI assistant",search:"searching the web",news:"reading news",
+      maps:"using maps",finance:"banking or payments",food:"ordering food",
+      ads:"ads and telemetry",adult:"adult sites",other:"browsing"}
   },
   ja: {
     tagline:"あなたのWiFiで誰が誰と通信しているか",
@@ -195,69 +214,112 @@ const I18N = {
     view_simple:"かんたん表示", view_detailed:"くわしい表示",
     unknown_dev:"不明なデバイス", this_dev:"このMac", router:"ルーター",
     doing_prefix:"たぶん:", quiet:"目立った通信なし", up_short:"上り", down_short:"下り",
-    dns_only:"名前解決のみ",
+    dns_only:"名前解決のみ", rename:"名前", rename_prompt:"この端末の名前（空欄で解除）:",
+    recent:"最近の動き", idle:"待機",
     cat:{video:"動画",shopping:"買い物",email:"メール",social:"SNS",music:"音楽",
-      messaging:"メッセージ",gaming:"ゲーム",cloud:"クラウド同期",dev:"開発",
+      messaging:"メッセージ",gaming:"ゲーム",cloud:"クラウド同期",dev:"開発",ai:"AI",
+      search:"検索",news:"ニュース",maps:"地図",finance:"金融",food:"フードデリバリー",
       ads:"広告・計測",adult:"アダルト",other:"その他"},
     act:{video:"動画を見ている",shopping:"買い物している",email:"メールを見ている",social:"SNSを見ている",
       music:"音楽を聴いている",messaging:"メッセージのやり取り",gaming:"ゲームをしている",cloud:"クラウド同期",
-      dev:"開発関連の通信",ads:"広告・計測通信",adult:"アダルトサイト",other:"閲覧している"}
+      dev:"開発関連の通信",ai:"AIを使っている",search:"検索している",news:"ニュースを読んでいる",
+      maps:"地図を見ている",finance:"決済・金融",food:"フードデリバリー",
+      ads:"広告・計測通信",adult:"アダルトサイト",other:"閲覧している"}
   }
 };
 
 // ---- service classification -------------------------------------------------
-// ordered rules: first substring match wins. {re, service, cat}
+// ordered rules: first match wins. [regex, service, category]
 const RULES = [
-  [/(^|\.)youtube\.com|googlevideo\.com|(^|\.)ytimg\.com/, "YouTube", "video"],
+  // video
+  [/(^|\.)youtube\.com|googlevideo\.com|(^|\.)ytimg\.com|youtu\.be/, "YouTube", "video"],
   [/nflxvideo|(^|\.)netflix\.com|nflximg/, "Netflix", "video"],
   [/(^|\.)primevideo|aiv-|avodmp4s3|video\.a2z|atv-ps|dmqdd6hw24ucf/, "Prime Video", "video"],
   [/(^|\.)twitch\.tv|ttvnw\.net/, "Twitch", "video"],
-  [/tiktok|tiktokcdn|byteoversea|ibyteimg/, "TikTok", "video"],
+  [/tiktok|tiktokcdn|byteoversea|ibyteimg|muscdn/, "TikTok", "video"],
   [/(^|\.)disneyplus|disney-plus|dssott/, "Disney+", "video"],
-  [/hulu|abema|niconico|nicovideo/, "Video", "video"],
-  [/mail\.google\.com|(^|\.)gmail\.com|imap|smtp|outlook\.office|mail\.me\.com/, "Mail", "email"],
+  [/abema|abematv/, "ABEMA", "video"],
+  [/unext|(^|\.)dazn|dc!?ndn|vimeo|bilibili|hbomax|max\.com|nicovideo|niconico|hulu/, "Video", "video"],
+  // ai assistants
+  [/openai|chatgpt|oaistatic|oaiusercontent/, "ChatGPT", "ai"],
+  [/anthropic|(^|\.)claude\.ai/, "Claude", "ai"],
+  [/gemini\.google|bard\.google|generativelanguage/, "Gemini", "ai"],
+  [/perplexity|copilot\.microsoft|githubcopilot/, "AI", "ai"],
+  // email
+  [/mail\.google\.com|(^|\.)gmail\.com|(^|\.)imap|(^|\.)smtp|mail\.me\.com|outlook\.(office|live)|mail\.yahoo/, "Mail", "email"],
+  // shopping
   [/unagi|amazon\.(co\.)?[a-z]+|media-amazon|images-amazon|ssl-images|amazonpay/, "Amazon", "shopping"],
-  [/rakuten|mercari|(^|\.)ebay|aliexpress|shopify|(^|\.)zozo/, "Shopping", "shopping"],
-  [/(^|\.)facebook|fbcdn|(^|\.)instagram|cdninstagram|whatsapp/, "Meta", "social"],
+  [/rakuten|mercari|(^|\.)ebay|aliexpress|(^|\.)temu|shein|shopify|(^|\.)zozo|yodobashi|(^|\.)etsy|shopping\.yahoo/, "Shopping", "shopping"],
+  // food delivery
+  [/ubereats|uber\.com|doordash|grubhub|deliveroo|demae-can|ubereats|foodpanda|wolt/, "Food delivery", "food"],
+  // finance / payments
+  [/paypay|(^|\.)paypal|stripe|(^|\.)visa|mastercard|americanexpress|mufg|smbc|mizuho|rakuten-bank|(^|\.)paypay|coinbase|binance|kraken/, "Finance", "finance"],
+  // maps
+  [/maps\.(google|apple)|mapbox|openstreetmap|googleusercontent.*maps|gmaps/, "Maps", "maps"],
+  // news
+  [/(^|\.)nhk\.or\.jp|asahi\.com|nikkei|yahoo\.co\.jp\/news|(^|\.)bbc\.|cnn\.com|nytimes|reuters|smartnews|gunosy/, "News", "news"],
+  // social
+  [/(^|\.)facebook|fbcdn|(^|\.)instagram|cdninstagram|(^|\.)threads\.net|whatsapp/, "Meta", "social"],
   [/(^|\.)twitter\.com|(^|\.)x\.com|twimg/, "X", "social"],
+  [/(^|\.)bsky|bluesky|mastodon|(^|\.)pinterest|pinimg|snapchat|sc-cdn/, "Social", "social"],
   [/reddit|redditstatic|redditmedia/, "Reddit", "social"],
   [/linkedin|licdn/, "LinkedIn", "social"],
+  // music
   [/spotify|scdn\.co/, "Spotify", "music"],
-  [/(^|\.)music\.apple|itunes\.apple/, "Apple Music", "music"],
-  [/soundcloud/, "SoundCloud", "music"],
+  [/(^|\.)music\.apple|itunes\.apple|music\.youtube/, "Music", "music"],
+  [/soundcloud|(^|\.)deezer|radiko|amazonmusic|music\.amazon/, "Music", "music"],
+  // messaging / calls
   [/discord|discordapp/, "Discord", "messaging"],
   [/(^|\.)slack\.com|slack-edge/, "Slack", "messaging"],
-  [/(^|\.)line\.me|line-apps|line-scdn/, "LINE", "messaging"],
-  [/telegram|(^|\.)t\.me/, "Telegram", "messaging"],
-  [/signaler-pa|clients\d?\.google|gcm|fcm|push\.apple|courier\.push/, "Notifications", "cloud"],
-  [/icloud|(^|\.)apple\.com|mzstatic|aaplimg|push\.apple/, "Apple", "cloud"],
-  [/(^|\.)dropbox|dropboxusercontent/, "Dropbox", "cloud"],
+  [/(^|\.)line\.me|line-apps|line-scdn|naver\.jp/, "LINE", "messaging"],
+  [/telegram|(^|\.)t\.me|signal\.org|whatsapp|messenger|wechat|weixin|kakao|(^|\.)zoom\.us|zoom\.com|teams\.(microsoft|live)|meet\.google/, "Messaging", "messaging"],
+  // search
+  [/(^|\.)google\.com\/search|(^|\.)bing\.com|duckduckgo|search\.yahoo|(^|\.)baidu/, "Search", "search"],
+  // notifications / cloud
+  [/signaler-pa|clients\d?\.google|gcm|(^|\.)fcm|push\.apple|courier\.push/, "Notifications", "cloud"],
+  [/icloud|(^|\.)apple\.com|mzstatic|aaplimg/, "Apple", "cloud"],
+  [/(^|\.)dropbox|dropboxusercontent|(^|\.)box\.com|photos\.google|(^|\.)notion|adobe/, "Cloud", "cloud"],
   [/onedrive|sharepoint|live\.com|(^|\.)microsoft\.com|windowsupdate|msftconnecttest/, "Microsoft", "cloud"],
-  [/(^|\.)drive\.google|googleapis|gstatic|google\.com/, "Google", "cloud"],
+  [/(^|\.)drive\.google|googleapis|gstatic|(^|\.)google\.com/, "Google", "cloud"],
+  // gaming
   [/steampowered|steamcommunity|steamstatic|steamcontent/, "Steam", "gaming"],
-  [/epicgames|playstation|(^|\.)xbox|nintendo|riotgames|battle\.net/, "Gaming", "gaming"],
-  [/github|githubusercontent|gitlab|npmjs|pypi|docker/, "Dev", "dev"],
-  [/doubleclick|googlesyndication|googleadservices|adservice|(^|\.)ads?\.|adsystem|adnxs|scorecardresearch|criteo|taboola|outbrain/, "Ads", "ads"],
-  [/telemetry|analytics|metrics|crashlytics|sentry|amplitude|mixpanel|segment|insights\.|app-measurement|firebaselog/, "Telemetry", "ads"],
+  [/epicgames|playstation|(^|\.)xbox|nintendo|riotgames|battle\.net|ea\.com|ubisoft/, "Gaming", "gaming"],
+  // dev
+  [/github|githubusercontent|gitlab|npmjs|pypi|(^|\.)docker|cargo|golang\.org/, "Dev", "dev"],
+  // ads / telemetry
+  [/doubleclick|googlesyndication|googleadservices|adservice|adsystem|adnxs|scorecardresearch|criteo|taboola|outbrain|(^|\.)ads?\./, "Ads", "ads"],
+  [/telemetry|analytics|metrics|crashlytics|sentry|amplitude|mixpanel|segment|app-measurement|firebaselog|insights\./, "Telemetry", "ads"],
+  // adult
   [/pornhub|phncdn|xvideos|xhcdn|xnxx|xhamster|redtube|dtscdn|rncdn/, "Adult", "adult"],
-  [/cloudflare|akamai|fastly|cloudfront|edgekey|edgesuite|llnwd|cdn/, "CDN", "other"],
+  // cdn / infra
+  [/cloudflare|akamai|fastly|cloudfront|edgekey|edgesuite|llnwd|(^|\.)cdn/, "CDN", "other"],
 ];
 function classify(host){
   host = (host||"").toLowerCase();
   for(const [re,service,cat] of RULES){ if(re.test(host)) return {service,cat}; }
-  // fall back to the registrable-ish label (last two labels)
   const parts = host.split(".").filter(Boolean);
   const name = parts.length>=2 ? parts[parts.length-2] : host;
   return {service: name ? name.charAt(0).toUpperCase()+name.slice(1) : host, cat:"other"};
 }
-const CAT_ORDER = ["video","shopping","social","music","gaming","messaging","email","cloud","dev","adult","ads","other"];
+const CAT_ORDER = ["video","shopping","social","music","gaming","messaging","email","ai","search",
+  "news","maps","finance","food","cloud","dev","adult","ads","other"];
+const NOISE = new Set(["ads","other"]);
+const CATCOLOR = {video:"#e5567f",shopping:"#d98420",email:"#5a7bd8",social:"#8a5cd8",music:"#2fa876",
+  messaging:"#2f95c4",gaming:"#7c5cff",cloud:"#7b8aa0",dev:"#55707f",ai:"#0f9b96",search:"#3f7fce",
+  news:"#c0664f",maps:"#3aa86b",finance:"#b8912a",food:"#e07a3f",ads:"#9a8a92",adult:"#c94f6d",other:"#b0a8bd"};
+
+// ---- persisted nicknames + client-side activity history ---------------------
+let NICK = (()=>{ try{return JSON.parse(localStorage.getItem("wtfi3_nick")||"{}")}catch(e){return {}} })();
+const HIST = {};          // ip -> [{t, cat|null}]  (client-side, session only)
+const PREV = {};          // ip -> {cat: cumulativeBytes} at previous tick
+const HIST_MAX = 60;
 
 let lang = (()=>{ try{return localStorage.getItem("wtfi3_lang")||"en"}catch(e){return "en"} })();
 let view = (()=>{ try{return localStorage.getItem("wtfi3_view")||"simple"}catch(e){return "simple"} })();
 const T = () => I18N[lang];
 function el(id){return document.getElementById(id)}
 const fmtB = n => n>=1e9?(n/1e9).toFixed(2)+"G":n>=1e6?(n/1e6).toFixed(2)+"M":n>=1e3?(n/1e3).toFixed(1)+"k":Math.round(n)+"";
-const esc = s => (s||"").replace(/[&<>]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]));
+const esc = s => (s||"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 
 function applyLang(){
   document.documentElement.lang = lang;
@@ -273,6 +335,16 @@ function applyView(){
 }
 el("lang").onclick = ()=>{ lang = lang==="en"?"ja":"en"; try{localStorage.setItem("wtfi3_lang",lang)}catch(e){} applyLang(); tick(); };
 el("view").onclick = ()=>{ view = view==="simple"?"detailed":"simple"; try{localStorage.setItem("wtfi3_view",view)}catch(e){} applyView(); tick(); };
+
+// rename is triggered from a card button; key is a MAC or IP (safe charset).
+window.renameDev = function(key){
+  const cur = NICK[key]||"";
+  const v = prompt(T().rename_prompt, cur);
+  if(v===null) return;
+  if(v.trim()) NICK[key]=v.trim(); else delete NICK[key];
+  try{localStorage.setItem("wtfi3_nick", JSON.stringify(NICK))}catch(e){}
+  tick();
+};
 
 function drawChart(series){
   const cv=el("chart"), ctx=cv.getContext("2d");
@@ -300,21 +372,21 @@ function drawChart(series){
 function buildSimple(s){
   const selfIP=s.self_ip, gw=s.gateway;
   const devs={};
-  const dev = ip => devs[ip] || (devs[ip]={ip, services:{}, tx:0, rx:0});
+  const dev = ip => devs[ip] || (devs[ip]={ip, services:{}, tx:0, rx:0, vendor:"", mac:""});
   (s.devices||[]).forEach(d=>{ const x=dev(d.ip); x.tx=d.tx_bytes; x.rx=d.rx_bytes; x.vendor=d.vendor; x.mac=d.mac; });
   const add = (ip, host, bytes) => {
-    if(!ip||!host) return;
-    const x=dev(ip), {service,cat}=classify(host);
-    const key=cat+"|"+service;
-    (x.services[key]=x.services[key]||{service,cat,bytes:0}).bytes += bytes||0;
+    if(!ip||!host||!devs[ip]) return; // only attribute to known LAN devices
+    const {service,cat}=classify(host), key=cat+"|"+service;
+    (devs[ip].services[key]=devs[ip].services[key]||{service,cat,bytes:0}).bytes += bytes||0;
   };
   (s.flows||[]).forEach(f=>{ if(f.sni) add(f.src, f.sni, f.bytes); });
   (s.dns||[]).forEach(e=> add(e.client, e.name, 0));
 
   return Object.values(devs).sort((a,b)=>(b.tx+b.rx)-(a.tx+a.rx)).map(x=>{
-    const name = x.ip===selfIP ? T().this_dev : x.ip===gw ? T().router
+    const nickKey = (x.mac && /[0-9a-f]{2}:/.test(x.mac)) ? x.mac : x.ip;
+    const base = x.ip===selfIP ? T().this_dev : x.ip===gw ? T().router
       : (x.vendor && x.vendor!=="randomized?" && !/^[0-9a-f:]+$/.test(x.vendor) ? x.vendor : T().unknown_dev);
-    // group services by category, keep top service names per cat
+    const name = NICK[nickKey] || base;
     const cats={};
     Object.values(x.services).forEach(sv=>{
       const c=cats[sv.cat]=cats[sv.cat]||{bytes:0,names:{}};
@@ -322,19 +394,48 @@ function buildSimple(s){
     });
     const ordered = Object.keys(cats)
       .sort((a,b)=> (cats[b].bytes-cats[a].bytes) || (CAT_ORDER.indexOf(a)-CAT_ORDER.indexOf(b)));
-    return {name, ip:x.ip, tx:x.tx, rx:x.rx, cats, ordered};
+    return {name, nickKey, ip:x.ip, tx:x.tx, rx:x.rx, cats, ordered};
   });
+}
+
+// updateHistory records, per device, the dominant meaningful category since the
+// previous tick (by transferred-byte delta), for the recent-activity timeline.
+function updateHistory(list){
+  const t=Date.now();
+  list.forEach(d=>{
+    const prev=PREV[d.ip]||{}, cur={};
+    let bestCat=null, bestDelta=0;
+    Object.keys(d.cats).forEach(c=>{
+      cur[c]=d.cats[c].bytes;
+      if(NOISE.has(c)) return;
+      const delta=cur[c]-(prev[c]||0);
+      if(delta>bestDelta){ bestDelta=delta; bestCat=c; }
+    });
+    PREV[d.ip]=cur;
+    const h=HIST[d.ip]||(HIST[d.ip]=[]);
+    h.push({t, cat:bestDelta>0?bestCat:null});
+    if(h.length>HIST_MAX) h.splice(0, h.length-HIST_MAX);
+  });
+}
+
+function timeStrip(ip){
+  const h=HIST[ip]||[];
+  if(!h.length) return "";
+  const segs=h.map(seg=>{
+    if(!seg.cat) return `<span class="seg idle" title="${T().idle}"></span>`;
+    const when=new Date(seg.t).toLocaleTimeString();
+    return `<span class="seg" style="background:${CATCOLOR[seg.cat]}" title="${when} · ${T().act[seg.cat]}"></span>`;
+  }).join("");
+  return `<div class="tl-label">${T().recent}</div><div class="tl">${segs}</div>`;
 }
 
 function renderSimple(s){
   const list=buildSimple(s);
+  updateHistory(list);
   const wrap=el("cards");
   if(!list.length){ wrap.innerHTML=`<div class="empty">${T().none_dev}</div>`; return; }
   wrap.innerHTML = list.map(d=>{
-    // Activity sentence is drawn only from categories with real transferred
-    // bytes: a lone DNS lookup (bytes == 0) is not evidence of active use, so
-    // it appears as a chip below but never drives the "Looks like" claim.
-    const meaningful=d.ordered.filter(c=>c!=="ads"&&c!=="other"&&d.cats[c].bytes>0);
+    const meaningful=d.ordered.filter(c=>!NOISE.has(c) && d.cats[c].bytes>0);
     const phrase = meaningful.length
       ? T().doing_prefix+" "+meaningful.slice(0,3).map(c=>T().act[c]).join(" / ")
       : `<span class="mut">${T().quiet}</span>`;
@@ -347,9 +448,11 @@ function renderSimple(s){
       <div class="top">
         <span class="name">${esc(d.name)}</span>
         <span class="ip">${esc(d.ip)}</span>
+        <button class="rename" onclick="renameDev('${esc(d.nickKey)}')">${T().rename}</button>
         <span class="bw">${T().up_short} ${fmtB(d.tx)} · ${T().down_short} ${fmtB(d.rx)}</span>
       </div>
       <div class="doing">${phrase}</div>
+      ${timeStrip(d.ip)}
       <div class="svc">${rows||`<span class="mut">${T().quiet}</span>`}</div>
     </div>`;
   }).join("");
