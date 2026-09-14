@@ -86,6 +86,9 @@ make build        # バージョン埋め込みビルド
 # オフラインテスト用の合成キャプチャを再生成:
 go run hack/gensample.go /tmp/sample.pcap
 ./wtfi3 -r /tmp/sample.pcap
+
+# 埋め込み MAC-ベンダ DB (web/oui.tsv) を更新:
+hack/update-oui.sh
 ```
 
 コミット規約とリリース手順は [CONTRIBUTING.md](CONTRIBUTING.md) を参照してください。

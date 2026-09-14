@@ -86,6 +86,9 @@ make build        # build with version stamp
 # Regenerate a synthetic capture for offline testing:
 go run hack/gensample.go /tmp/sample.pcap
 ./wtfi3 -r /tmp/sample.pcap
+
+# Refresh the embedded MAC-vendor database (web/oui.tsv):
+hack/update-oui.sh
 ```
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) for the commit convention and release process.
