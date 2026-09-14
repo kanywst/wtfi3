@@ -30,6 +30,14 @@ New to networking? Start with the [TCP/IP primer](docs/tcp-ip-primer.md), then r
 
 ## Install
 
+### Homebrew
+
+```bash
+brew install kanywst/tap/wtfi3
+```
+
+### From source
+
 ```bash
 git clone https://github.com/kanywst/wtfi3.git
 cd wtfi3

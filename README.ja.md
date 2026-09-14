@@ -30,6 +30,14 @@
 
 ## インストール
 
+### Homebrew
+
+```bash
+brew install kanywst/tap/wtfi3
+```
+
+### ソースから
+
 ```bash
 git clone https://github.com/kanywst/wtfi3.git
 cd wtfi3
