@@ -336,15 +336,20 @@ function applyView(){
 el("lang").onclick = ()=>{ lang = lang==="en"?"ja":"en"; try{localStorage.setItem("wtfi3_lang",lang)}catch(e){} applyLang(); tick(); };
 el("view").onclick = ()=>{ view = view==="simple"?"detailed":"simple"; try{localStorage.setItem("wtfi3_view",view)}catch(e){} applyView(); tick(); };
 
-// rename is triggered from a card button; key is a MAC or IP (safe charset).
-window.renameDev = function(key){
+// rename is triggered from a card button via event delegation (no inline
+// onclick), so a device key never has to be interpolated into a JS string.
+function renameDev(key){
   const cur = NICK[key]||"";
   const v = prompt(T().rename_prompt, cur);
   if(v===null) return;
   if(v.trim()) NICK[key]=v.trim(); else delete NICK[key];
   try{localStorage.setItem("wtfi3_nick", JSON.stringify(NICK))}catch(e){}
   tick();
-};
+}
+el("cards").addEventListener("click", e=>{
+  const b = e.target.closest(".rename");
+  if(b) renameDev(b.dataset.key);
+});
 
 function drawChart(series){
   const cv=el("chart"), ctx=cv.getContext("2d");
@@ -448,7 +453,7 @@ function renderSimple(s){
       <div class="top">
         <span class="name">${esc(d.name)}</span>
         <span class="ip">${esc(d.ip)}</span>
-        <button class="rename" onclick="renameDev('${esc(d.nickKey)}')">${T().rename}</button>
+        <button class="rename" data-key="${esc(d.nickKey)}">${T().rename}</button>
         <span class="bw">${T().up_short} ${fmtB(d.tx)} · ${T().down_short} ${fmtB(d.rx)}</span>
       </div>
       <div class="doing">${phrase}</div>
