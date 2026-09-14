@@ -1,0 +1,114 @@
+name: Claude review
+
+# CI answers "does it build and do the tests pass". This asks the question no
+# script here can. It reviews, it does not gate: nothing here is a required
+# check.
+#
+# The action refuses to run when this file differs from the copy on the default
+# branch, so a pull request cannot rewrite its own reviewer. The cost is that
+# any change to this file, including the one that added it, goes unreviewed by
+# Claude until it is merged.
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+
+permissions: {}
+
+# One review per pull request. A rapid re-push cancels the run it superseded
+# rather than paying for a review of a diff that no longer exists.
+concurrency:
+  group: claude-review-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  review:
+    # A pull request from a fork gets no secrets, so the job would fail on
+    # authentication rather than say anything useful. Dependabot is the same
+    # problem wearing a different hat: its pull requests run against the
+    # Dependabot secret store, where this token does not exist. A version bump
+    # is also the one diff that has nothing for a reviewer to say. Drafts are
+    # skipped until they are marked ready, which is what the ready_for_review
+    # trigger is for.
+    if: >-
+      github.event.pull_request.head.repo.full_name == github.repository &&
+      github.event.pull_request.draft == false &&
+      github.event.pull_request.user.login != 'dependabot[bot]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+      pull-requests: write
+      # Required by the action's default GitHub App authentication.
+      id-token: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          fetch-depth: 0
+
+      # Without the secret the action exits successfully having reviewed
+      # nothing, which is worse than failing: the check goes green and the
+      # pull request looks reviewed. Fail here instead, where the reason is
+      # legible.
+      - name: Require the token
+        env:
+          CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+        run: |
+          if [ -z "$CLAUDE_CODE_OAUTH_TOKEN" ]; then
+            echo "::error::CLAUDE_CODE_OAUTH_TOKEN is not set. Generate one with 'claude setup-token', then: gh secret set CLAUDE_CODE_OAUTH_TOKEN"
+            exit 1
+          fi
+
+      - uses: anthropics/claude-code-action@56cf60fde42f7b19c3abfd5c9c48b69a1288461f # v1
+        with:
+          # A subscription token, not an API key: runs against the Claude plan
+          # instead of API credits. Generate it with `claude setup-token`.
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          prompt: |
+            REPO: ${{ github.repository }}
+            PR: ${{ github.event.pull_request.number }}
+
+            wtfi3 visualizes the traffic on a WiFi network the operator administers. Its
+            central promise is that it is a metadata visualizer, not a wiretap: TLS payloads
+            are never decrypted, and only metadata (endpoints, volume, protocol, DNS names,
+            TLS SNI) is shown. It has a passive mode and an ARP-spoof MITM mode.
+
+            Do not repeat what CI already does. Build, test, vet and lint run on this PR
+            already.
+
+            Look for what only a reader can catch:
+
+            1. The metadata-only promise. Any change that decrypts, stores, logs, or exposes
+               packet payload contents breaks the core guarantee and is the most serious
+               defect possible here. The `-w` pcap dump is the one intended raw-bytes sink;
+               nothing else should write payloads.
+
+            2. Exposure surface. The dashboard binds locally by default. A change that binds
+               0.0.0.0, adds CORS, or otherwise serves the captured data (which includes who
+               every device talks to) onto the network is a leak.
+
+            3. ARP-spoof safety. Spoof mode is an active MITM and must stay opt-in
+               (`-spoof`), must enable IP forwarding only while running, and must restore the
+               ARP caches and disable forwarding on exit. A change that enables it by default,
+               leaves caches poisoned, or leaks the forwarding state is dangerous.
+
+            4. Accounting correctness. Devices are attributed by LAN IP; spoof mode counts
+               only the leg whose L2 destination is us, to avoid double counting relayed
+               packets. A change that reintroduces double counting or misattributes traffic
+               is a silent correctness bug.
+
+            5. Dashboard safety and honesty. Hostnames come from untrusted network data and
+               are rendered in the browser: every such string must be HTML-escaped (XSS). The
+               Simple view classifies DNS/SNI into services and activities; it should not
+               over-claim (a single DNS lookup is not proof of active use).
+
+            6. Concurrency and lifecycle. Shared state is mutex-guarded and goroutines are
+               driven by a context cancelled on signal. Watch for data races, goroutine
+               leaks, or shutdown paths that skip ARP restoration.
+
+            Post findings as inline comments on the lines they concern. Use one top-level
+            comment for the summary. Be specific and cite `file:line`. If the diff is clean
+            against all of the above, say so in one line rather than manufacturing nits.
+
+          claude_args: |
+            --allowedTools "mcp__github_inline_comment__create_inline_comment,Bash(gh pr comment:*),Bash(gh pr diff:*),Bash(gh pr view:*)"
