@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+### Fixed
+
+- Simple view no longer claims an activity (for example "watching video") from a bare DNS lookup: the activity summary is drawn only from categories with transferred bytes, and DNS-only services are tagged as looked-up rather than used.
+
 ### Added
 
 - Simple view: a plain-language dashboard mode that groups each device's traffic into human-readable services and activity categories (video, shopping, email, social, and so on) by classifying DNS names and TLS SNI hostnames. Toggle between Simple and Detailed in the header.
