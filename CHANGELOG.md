@@ -6,15 +6,18 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
-### Fixed
-
-- Simple view no longer claims an activity (for example "watching video") from a bare DNS lookup: the activity summary is drawn only from categories with transferred bytes, and DNS-only services are tagged as looked-up rather than used.
+## [0.3.0] - 2026-09-14
 
 ### Added
 
 - Simple view: a plain-language dashboard mode that groups each device's traffic into human-readable services and activity categories (video, shopping, email, social, and so on) by classifying DNS names and TLS SNI hostnames. Toggle between Simple and Detailed in the header.
+- Claude review workflow that comments on pull requests.
 - Homebrew install via `brew install kanywst/tap/wtfi3`.
 - Status badges (CI, release, Go version, license) in the README.
+
+### Fixed
+
+- Simple view no longer claims an activity (for example "watching video") from a bare DNS lookup: the activity summary is drawn only from categories with transferred bytes, and DNS-only services are tagged as looked-up rather than used.
 
 ## [0.2.0] - 2026-09-14
 
@@ -56,7 +59,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - Optional packet dump to `.pcap` (`-w`) for analysis in Wireshark.
 - Dashboard internationalization: English default with a Japanese toggle.
 
-[Unreleased]: https://github.com/kanywst/wtfi3/compare/v0.2.0...HEAD
+[Unreleased]: https://github.com/kanywst/wtfi3/compare/v0.3.0...HEAD
+[0.3.0]: https://github.com/kanywst/wtfi3/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/kanywst/wtfi3/compare/v0.1.1...v0.2.0
 [0.1.1]: https://github.com/kanywst/wtfi3/compare/v0.1.0...v0.1.1
 [0.1.0]: https://github.com/kanywst/wtfi3/releases/tag/v0.1.0
