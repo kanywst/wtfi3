@@ -6,6 +6,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+### Added
+
+- Simple view: manual device nicknames (click "rename" on a card; stored per device in the browser).
+- Simple view: a per-device recent-activity timeline showing what each device was doing over the last minute, colored by category.
+- Expanded the service dictionary with new categories (AI assistants, search, news, maps, finance, food delivery) and many more services (ChatGPT, Claude, Gemini, ABEMA, Disney+, LINE, Zoom, PayPay, Uber Eats, and others).
+
 ## [0.3.0] - 2026-09-14
 
 ### Added
