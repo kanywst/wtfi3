@@ -1,5 +1,7 @@
 # wtfi3
 
+[![CI](https://github.com/kanywst/wtfi3/actions/workflows/ci.yml/badge.svg)](https://github.com/kanywst/wtfi3/actions/workflows/ci.yml) [![Release](https://img.shields.io/github/v/release/kanywst/wtfi3?sort=semver)](https://github.com/kanywst/wtfi3/releases/latest) [![Go version](https://img.shields.io/github/go-mod/go-version/kanywst/wtfi3)](go.mod) [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+
 **wtfi3** は、自分が管理する WiFi ネットワーク上で「誰が誰と通信しているか」を可視化するツールです。自分のネットワークに接続し、バイナリを 1 つ実行してブラウザを開けば、各デバイスのフロー・DNS 名前解決・接続先ホスト名・帯域をリアルタイムに確認できます。
 
 これは盗聴ツールではなくメタデータ可視化ツールです。TLS の中身は復号しません。得られるのは通信の「かたち」、つまり通信相手・通信量・プロトコル・DNS 名・TLS SNI ホスト名です。

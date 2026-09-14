@@ -1,5 +1,7 @@
 # wtfi3
 
+[![CI](https://github.com/kanywst/wtfi3/actions/workflows/ci.yml/badge.svg)](https://github.com/kanywst/wtfi3/actions/workflows/ci.yml) [![Release](https://img.shields.io/github/v/release/kanywst/wtfi3?sort=semver)](https://github.com/kanywst/wtfi3/releases/latest) [![Go version](https://img.shields.io/github/go-mod/go-version/kanywst/wtfi3)](go.mod) [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+
 **wtfi3** shows you who is talking to whom on a WiFi network you administer. Connect to your own network, run one binary, open a browser, and watch every device's flows, DNS lookups, destination hostnames, and bandwidth in real time.
 
 It is a passive/metadata visualizer, not a wiretap: TLS payloads are never decrypted. What you get is the shape of the traffic: endpoints, volume, protocols, DNS names, and TLS SNI hostnames.
