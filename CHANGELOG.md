@@ -8,6 +8,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Added
 
+- Simple view: a plain-language dashboard mode that groups each device's traffic into human-readable services and activity categories (video, shopping, email, social, and so on) by classifying DNS names and TLS SNI hostnames. Toggle between Simple and Detailed in the header.
 - Homebrew install via `brew install kanywst/tap/wtfi3`.
 - Status badges (CI, release, Go version, license) in the README.
 

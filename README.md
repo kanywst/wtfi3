@@ -67,7 +67,10 @@ sudo ./wtfi3 -i en0 -spoof -w capture.pcap
 ./wtfi3 -r capture.pcap
 ```
 
-Then open <http://localhost:8080>. The dashboard defaults to English; use the toggle in the header to switch to Japanese.
+Then open <http://localhost:8080>. The header has two toggles: a view toggle and a language toggle (English default, Japanese available).
+
+- **Simple view** (default) groups each device's traffic into plain-language services and activity categories (video, shopping, email, social, and so on), so you can see at a glance what a device is doing and which services it is reaching.
+- **Detailed view** shows the raw devices, top flows, and DNS tables.
 
 ### Flags
 

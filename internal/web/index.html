@@ -32,12 +32,13 @@
   .mode.passive{background:#eef7f3;color:#3aa88b}
   .mode.spoof{background:#ffeef0;color:#e5738a}
   @media (prefers-color-scheme: dark){.mode.passive{background:#1e3a33;color:#8fd9c8}.mode.spoof{background:#3a2230;color:#ffb4c4}}
-  #lang{cursor:pointer;background:var(--card);border:1px solid var(--line);border-radius:999px;padding:5px 12px;font-size:12px;color:var(--ink);box-shadow:var(--shadow);font-family:inherit}
-  #lang:hover{border-color:var(--accent)}
-  main{display:grid;grid-template-columns:1fr 1fr;gap:16px;padding:6px 22px 26px}
-  @media(max-width:860px){main{grid-template-columns:1fr}}
-  section{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;display:flex;flex-direction:column}
-  section.wide{grid-column:1 / -1}
+  .btn{cursor:pointer;background:var(--card);border:1px solid var(--line);border-radius:999px;padding:5px 12px;font-size:12px;color:var(--ink);box-shadow:var(--shadow);font-family:inherit}
+  .btn:hover{border-color:var(--accent)}
+  .btn.on{background:var(--accent);color:#fff;border-color:var(--accent)}
+  main{padding:6px 22px 26px}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  @media(max-width:860px){.grid2{grid-template-columns:1fr}}
+  section{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;display:flex;flex-direction:column;margin-bottom:16px}
   h2{font-size:12px;margin:0;padding:13px 18px;color:var(--muted);font-weight:700;letter-spacing:.4px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center}
   h2 .count{background:var(--bg);color:var(--accent);border-radius:999px;padding:2px 9px;font-size:11px}
   .scroll{overflow:auto;max-height:330px}
@@ -58,6 +59,39 @@
   .empty{padding:22px 18px;color:var(--muted);text-align:center}
   #chart{width:100%;height:130px;display:block}
   footer{padding:10px 22px 26px;color:var(--muted);font-size:11px;text-align:center}
+
+  /* simple mode */
+  .cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:16px}
+  .dev{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);padding:16px 18px}
+  .dev .top{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}
+  .dev .name{font-size:16px;font-weight:700;color:var(--ink)}
+  .dev .ip{font-size:11px;color:var(--muted)}
+  .dev .bw{margin-left:auto;font-size:11px;color:var(--muted);font-variant-numeric:tabular-nums}
+  .dev .doing{margin:8px 0 12px;font-size:13px;color:var(--ink);line-height:1.5}
+  .svc{display:flex;flex-direction:column;gap:6px}
+  .svc .row{display:flex;align-items:center;gap:8px}
+  .svc .cat{font-size:10px;font-weight:700;padding:2px 8px;border-radius:999px;white-space:nowrap}
+  .svc .names{font-size:12px;color:var(--ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .cat-video{background:#ffe6ee;color:#e5567f}
+  .cat-shopping{background:#fff0e0;color:#d98420}
+  .cat-email{background:#e7efff;color:#5a7bd8}
+  .cat-social{background:#efe6ff;color:#8a5cd8}
+  .cat-music{background:#e6faf0;color:#2fa876}
+  .cat-messaging{background:#e6f7ff;color:#2f95c4}
+  .cat-gaming{background:#eee6ff;color:#7c5cff}
+  .cat-cloud{background:#eef1f5;color:#6b7a90}
+  .cat-dev{background:#e9eef2;color:#55707f}
+  .cat-ads{background:#f2eef0;color:#9a8a92}
+  .cat-adult{background:#fde6ea;color:#c94f6d}
+  .cat-other{background:var(--bg);color:var(--muted)}
+  @media (prefers-color-scheme: dark){
+    .cat-video{background:#3a2230;color:#ff9dbd}.cat-shopping{background:#3a2c1c;color:#ffc98a}
+    .cat-email{background:#232a4a;color:#a9baff}.cat-social{background:#2c2246;color:#c9a9ff}
+    .cat-music{background:#1e3a2e;color:#8fe0b6}.cat-messaging{background:#1c3540;color:#8fd4ef}
+    .cat-gaming{background:#282246;color:#b6a9ff}.cat-cloud{background:#2a3038;color:#a9bccf}
+    .cat-dev{background:#243038;color:#9fc0cf}.cat-ads{background:#302a2e;color:#c7b3bd}
+    .cat-adult{background:#3a2028;color:#f0a0b4}.cat-other{background:var(--bg);color:var(--muted)}
+  }
 </style>
 </head>
 <body>
@@ -69,46 +103,55 @@
   <div class="stats">
     <span class="pill"><span data-i18n="iface"></span> <b id="iface">-</b></span>
     <span class="pill"><span data-i18n="host"></span> <b id="selfip">-</b></span>
-    <span class="pill"><span data-i18n="gw"></span> <b id="gw">-</b></span>
     <span class="pill"><span data-i18n="total"></span> <b id="total">0</b></span>
     <span class="pill"><span data-i18n="up"></span> <b id="up">0</b></span>
-    <span class="pill mode passive" id="mode">passive</span>
-    <button id="lang">日本語</button>
+    <span class="pill mode passive" id="netmode">passive</span>
+    <button id="view" class="btn"></button>
+    <button id="lang" class="btn">日本語</button>
   </div>
 </header>
 <main>
-  <section class="wide">
+  <section>
     <h2><span data-i18n="throughput"></span><span class="count" id="bw">0</span></h2>
     <canvas id="chart" height="130"></canvas>
   </section>
-  <section>
-    <h2><span data-i18n="devices"></span><span class="count" id="ndev">0</span></h2>
-    <div class="scroll">
-      <table><thead><tr>
-        <th data-i18n="th_ip"></th><th data-i18n="th_vendor"></th><th data-i18n="th_mac"></th>
-        <th class="num" data-i18n="th_up"></th><th class="num" data-i18n="th_down"></th>
-      </tr></thead><tbody id="devs"></tbody></table>
+
+  <div id="simple">
+    <div class="cards" id="cards"></div>
+  </div>
+
+  <div id="detailed" hidden>
+    <div class="grid2">
+      <section>
+        <h2><span data-i18n="devices"></span><span class="count" id="ndev">0</span></h2>
+        <div class="scroll">
+          <table><thead><tr>
+            <th data-i18n="th_ip"></th><th data-i18n="th_vendor"></th><th data-i18n="th_mac"></th>
+            <th class="num" data-i18n="th_up"></th><th class="num" data-i18n="th_down"></th>
+          </tr></thead><tbody id="devs"></tbody></table>
+        </div>
+      </section>
+      <section>
+        <h2><span data-i18n="lookups"></span><span class="count" id="ndns">0</span></h2>
+        <div class="scroll">
+          <table><thead><tr>
+            <th data-i18n="th_client"></th><th data-i18n="th_name"></th>
+            <th data-i18n="th_type"></th><th data-i18n="th_answer"></th>
+          </tr></thead><tbody id="dns"></tbody></table>
+        </div>
+      </section>
     </div>
-  </section>
-  <section>
-    <h2><span data-i18n="lookups"></span><span class="count" id="ndns">0</span></h2>
-    <div class="scroll">
-      <table><thead><tr>
-        <th data-i18n="th_client"></th><th data-i18n="th_name"></th>
-        <th data-i18n="th_type"></th><th data-i18n="th_answer"></th>
-      </tr></thead><tbody id="dns"></tbody></table>
-    </div>
-  </section>
-  <section class="wide">
-    <h2><span data-i18n="flows"></span><span class="count" id="nflow">0</span></h2>
-    <div class="scroll" style="max-height:420px">
-      <table><thead><tr>
-        <th data-i18n="th_src"></th><th data-i18n="th_dst"></th><th data-i18n="th_proto"></th>
-        <th class="num" data-i18n="th_port"></th><th data-i18n="th_sni"></th>
-        <th class="num" data-i18n="th_bytes"></th><th class="num" data-i18n="th_pkts"></th><th></th>
-      </tr></thead><tbody id="flows"></tbody></table>
-    </div>
-  </section>
+    <section>
+      <h2><span data-i18n="flows"></span><span class="count" id="nflow">0</span></h2>
+      <div class="scroll" style="max-height:420px">
+        <table><thead><tr>
+          <th data-i18n="th_src"></th><th data-i18n="th_dst"></th><th data-i18n="th_proto"></th>
+          <th class="num" data-i18n="th_port"></th><th data-i18n="th_sni"></th>
+          <th class="num" data-i18n="th_bytes"></th><th class="num" data-i18n="th_pkts"></th><th></th>
+        </tr></thead><tbody id="flows"></tbody></table>
+      </div>
+    </section>
+  </div>
 </main>
 <footer data-i18n="footer"></footer>
 
@@ -116,7 +159,7 @@
 const I18N = {
   en: {
     tagline:"who is talking to whom on your WiFi",
-    iface:"iface", host:"host", gw:"gateway", total:"total", up:"uptime",
+    iface:"iface", host:"host", total:"total", up:"uptime",
     throughput:"Throughput", devices:"Devices", lookups:"DNS lookups", flows:"Top flows",
     th_ip:"IP", th_vendor:"vendor", th_mac:"MAC", th_up:"up", th_down:"down",
     th_client:"client", th_name:"name", th_type:"type", th_answer:"answer",
@@ -124,12 +167,21 @@ const I18N = {
     th_sni:"hostname (SNI)", th_bytes:"bytes", th_pkts:"pkts",
     peak:"peak", none_dev:"no devices yet", none_flow:"no flows yet",
     none_dns:"no DNS seen (encrypted DoH/DoT?)",
-    footer:"Refreshed every second. TLS payloads are not decrypted - only metadata (destination, volume, DNS, SNI) is shown.",
-    lang:"日本語"
+    footer:"Refreshed every second. TLS payloads are not decrypted, only metadata (destination, volume, DNS, SNI) is shown.",
+    lang:"日本語",
+    view_simple:"Simple view", view_detailed:"Detailed view",
+    unknown_dev:"Unknown device", this_dev:"This Mac", router:"Router",
+    doing_prefix:"Looks like:", quiet:"quiet, no recognizable services yet", up_short:"up", down_short:"down",
+    cat:{video:"Video",shopping:"Shopping",email:"Email",social:"Social",music:"Music",
+      messaging:"Messaging",gaming:"Gaming",cloud:"Cloud/Sync",dev:"Developer",
+      ads:"Ads/Telemetry",adult:"Adult",other:"Other"},
+    act:{video:"watching video",shopping:"shopping",email:"checking email",social:"on social media",
+      music:"listening to music",messaging:"messaging",gaming:"gaming",cloud:"syncing with cloud",
+      dev:"developer traffic",ads:"ads and telemetry",adult:"adult sites",other:"browsing"}
   },
   ja: {
     tagline:"あなたのWiFiで誰が誰と通信しているか",
-    iface:"インターフェース", host:"自分", gw:"ゲートウェイ", total:"合計", up:"稼働",
+    iface:"インターフェース", host:"自分", total:"合計", up:"稼働",
     throughput:"通信量", devices:"デバイス", lookups:"DNS名前解決", flows:"フロー上位",
     th_ip:"IP", th_vendor:"メーカー", th_mac:"MAC", th_up:"上り", th_down:"下り",
     th_client:"端末", th_name:"名前", th_type:"種別", th_answer:"応答",
@@ -137,23 +189,88 @@ const I18N = {
     th_sni:"ホスト名 (SNI)", th_bytes:"バイト", th_pkts:"パケット",
     peak:"ピーク", none_dev:"デバイス未検出", none_flow:"フロー未検出",
     none_dns:"DNSなし（DoH/DoTで暗号化？）",
-    footer:"1秒ごとに更新。TLSの中身は復号しません - 表示はメタデータ（宛先・通信量・DNS・SNI）のみ。",
-    lang:"English"
+    footer:"1秒ごとに更新。TLSの中身は復号しません。表示はメタデータ（宛先・通信量・DNS・SNI）のみ。",
+    lang:"English",
+    view_simple:"かんたん表示", view_detailed:"くわしい表示",
+    unknown_dev:"不明なデバイス", this_dev:"このMac", router:"ルーター",
+    doing_prefix:"たぶん:", quiet:"目立った通信なし", up_short:"上り", down_short:"下り",
+    cat:{video:"動画",shopping:"買い物",email:"メール",social:"SNS",music:"音楽",
+      messaging:"メッセージ",gaming:"ゲーム",cloud:"クラウド同期",dev:"開発",
+      ads:"広告・計測",adult:"アダルト",other:"その他"},
+    act:{video:"動画を見ている",shopping:"買い物している",email:"メールを見ている",social:"SNSを見ている",
+      music:"音楽を聴いている",messaging:"メッセージのやり取り",gaming:"ゲームをしている",cloud:"クラウド同期",
+      dev:"開発関連の通信",ads:"広告・計測通信",adult:"アダルトサイト",other:"閲覧している"}
   }
 };
-let lang = (()=>{ try{return localStorage.getItem("wtfi3_lang")||"en"}catch(e){return "en"} })();
-const T = () => I18N[lang];
 
-function applyLang(){
-  document.documentElement.lang = lang;
-  document.querySelectorAll("[data-i18n]").forEach(el=>{ el.textContent = T()[el.dataset.i18n]||el.dataset.i18n; });
-  el("lang").textContent = T().lang;
+// ---- service classification -------------------------------------------------
+// ordered rules: first substring match wins. {re, service, cat}
+const RULES = [
+  [/(^|\.)youtube\.com|googlevideo\.com|(^|\.)ytimg\.com/, "YouTube", "video"],
+  [/nflxvideo|(^|\.)netflix\.com|nflximg/, "Netflix", "video"],
+  [/(^|\.)primevideo|aiv-|avodmp4s3|video\.a2z|atv-ps|dmqdd6hw24ucf/, "Prime Video", "video"],
+  [/(^|\.)twitch\.tv|ttvnw\.net/, "Twitch", "video"],
+  [/tiktok|tiktokcdn|byteoversea|ibyteimg/, "TikTok", "video"],
+  [/(^|\.)disneyplus|disney-plus|dssott/, "Disney+", "video"],
+  [/hulu|abema|niconico|nicovideo/, "Video", "video"],
+  [/mail\.google\.com|(^|\.)gmail\.com|imap|smtp|outlook\.office|mail\.me\.com/, "Mail", "email"],
+  [/unagi|amazon\.(co\.)?[a-z]+|media-amazon|images-amazon|ssl-images|amazonpay/, "Amazon", "shopping"],
+  [/rakuten|mercari|(^|\.)ebay|aliexpress|shopify|(^|\.)zozo/, "Shopping", "shopping"],
+  [/(^|\.)facebook|fbcdn|(^|\.)instagram|cdninstagram|whatsapp/, "Meta", "social"],
+  [/(^|\.)twitter\.com|(^|\.)x\.com|twimg/, "X", "social"],
+  [/reddit|redditstatic|redditmedia/, "Reddit", "social"],
+  [/linkedin|licdn/, "LinkedIn", "social"],
+  [/spotify|scdn\.co/, "Spotify", "music"],
+  [/(^|\.)music\.apple|itunes\.apple/, "Apple Music", "music"],
+  [/soundcloud/, "SoundCloud", "music"],
+  [/discord|discordapp/, "Discord", "messaging"],
+  [/(^|\.)slack\.com|slack-edge/, "Slack", "messaging"],
+  [/(^|\.)line\.me|line-apps|line-scdn/, "LINE", "messaging"],
+  [/telegram|(^|\.)t\.me/, "Telegram", "messaging"],
+  [/signaler-pa|clients\d?\.google|gcm|fcm|push\.apple|courier\.push/, "Notifications", "cloud"],
+  [/icloud|(^|\.)apple\.com|mzstatic|aaplimg|push\.apple/, "Apple", "cloud"],
+  [/(^|\.)dropbox|dropboxusercontent/, "Dropbox", "cloud"],
+  [/onedrive|sharepoint|live\.com|(^|\.)microsoft\.com|windowsupdate|msftconnecttest/, "Microsoft", "cloud"],
+  [/(^|\.)drive\.google|googleapis|gstatic|google\.com/, "Google", "cloud"],
+  [/steampowered|steamcommunity|steamstatic|steamcontent/, "Steam", "gaming"],
+  [/epicgames|playstation|(^|\.)xbox|nintendo|riotgames|battle\.net/, "Gaming", "gaming"],
+  [/github|githubusercontent|gitlab|npmjs|pypi|docker/, "Dev", "dev"],
+  [/doubleclick|googlesyndication|googleadservices|adservice|(^|\.)ads?\.|adsystem|adnxs|scorecardresearch|criteo|taboola|outbrain/, "Ads", "ads"],
+  [/telemetry|analytics|metrics|crashlytics|sentry|amplitude|mixpanel|segment|insights\.|app-measurement|firebaselog/, "Telemetry", "ads"],
+  [/pornhub|phncdn|xvideos|xhcdn|xnxx|xhamster|redtube|dtscdn|rncdn/, "Adult", "adult"],
+  [/cloudflare|akamai|fastly|cloudfront|edgekey|edgesuite|llnwd|cdn/, "CDN", "other"],
+];
+function classify(host){
+  host = (host||"").toLowerCase();
+  for(const [re,service,cat] of RULES){ if(re.test(host)) return {service,cat}; }
+  // fall back to the registrable-ish label (last two labels)
+  const parts = host.split(".").filter(Boolean);
+  const name = parts.length>=2 ? parts[parts.length-2] : host;
+  return {service: name ? name.charAt(0).toUpperCase()+name.slice(1) : host, cat:"other"};
 }
-el("lang").onclick = ()=>{ lang = lang==="en"?"ja":"en"; try{localStorage.setItem("wtfi3_lang",lang)}catch(e){} applyLang(); tick(); };
+const CAT_ORDER = ["video","shopping","social","music","gaming","messaging","email","cloud","dev","adult","ads","other"];
 
+let lang = (()=>{ try{return localStorage.getItem("wtfi3_lang")||"en"}catch(e){return "en"} })();
+let view = (()=>{ try{return localStorage.getItem("wtfi3_view")||"simple"}catch(e){return "simple"} })();
+const T = () => I18N[lang];
 function el(id){return document.getElementById(id)}
 const fmtB = n => n>=1e9?(n/1e9).toFixed(2)+"G":n>=1e6?(n/1e6).toFixed(2)+"M":n>=1e3?(n/1e3).toFixed(1)+"k":Math.round(n)+"";
 const esc = s => (s||"").replace(/[&<>]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]));
+
+function applyLang(){
+  document.documentElement.lang = lang;
+  document.querySelectorAll("[data-i18n]").forEach(e=>{ e.textContent = T()[e.dataset.i18n]||e.dataset.i18n; });
+  el("lang").textContent = T().lang;
+  applyView();
+}
+function applyView(){
+  el("simple").hidden = view!=="simple";
+  el("detailed").hidden = view==="simple";
+  el("view").textContent = view==="simple" ? T().view_detailed : T().view_simple;
+  el("view").classList.toggle("on", view==="simple");
+}
+el("lang").onclick = ()=>{ lang = lang==="en"?"ja":"en"; try{localStorage.setItem("wtfi3_lang",lang)}catch(e){} applyLang(); tick(); };
+el("view").onclick = ()=>{ view = view==="simple"?"detailed":"simple"; try{localStorage.setItem("wtfi3_view",view)}catch(e){} applyView(); tick(); };
 
 function drawChart(series){
   const cv=el("chart"), ctx=cv.getContext("2d");
@@ -177,16 +294,63 @@ function drawChart(series){
   path(false);ctx.strokeStyle=acc;ctx.lineWidth=2;ctx.lineJoin="round";ctx.stroke();
 }
 
-async function tick(){
-  let s; try{ s=await (await fetch("/api/state")).json(); }catch(e){ return; }
-  el("iface").textContent=s.iface; el("selfip").textContent=s.self_ip;
-  el("gw").textContent=s.gateway||"-";
-  el("total").textContent=s.total_mb.toFixed(1)+" MB";
-  el("up").textContent=Math.round(s.uptime_sec)+"s";
-  const m=el("mode");
-  m.className="pill mode "+(s.spoof?"spoof":"passive");
-  m.textContent=s.spoof?("MITM"+(s.spoof_list&&s.spoof_list.length?" ×"+s.spoof_list.length:"")):"passive";
+// Build a friendly per-device summary from flows + DNS.
+function buildSimple(s){
+  const selfIP=s.self_ip, gw=s.gateway;
+  const devs={};
+  const dev = ip => devs[ip] || (devs[ip]={ip, services:{}, tx:0, rx:0});
+  (s.devices||[]).forEach(d=>{ const x=dev(d.ip); x.tx=d.tx_bytes; x.rx=d.rx_bytes; x.vendor=d.vendor; x.mac=d.mac; });
+  const add = (ip, host, bytes) => {
+    if(!ip||!host) return;
+    const x=dev(ip), {service,cat}=classify(host);
+    const key=cat+"|"+service;
+    (x.services[key]=x.services[key]||{service,cat,bytes:0}).bytes += bytes||0;
+  };
+  (s.flows||[]).forEach(f=>{ if(f.sni) add(f.src, f.sni, f.bytes); });
+  (s.dns||[]).forEach(e=> add(e.client, e.name, 0));
 
+  return Object.values(devs).sort((a,b)=>(b.tx+b.rx)-(a.tx+a.rx)).map(x=>{
+    const name = x.ip===selfIP ? T().this_dev : x.ip===gw ? T().router
+      : (x.vendor && x.vendor!=="randomized?" && !/^[0-9a-f:]+$/.test(x.vendor) ? x.vendor : T().unknown_dev);
+    // group services by category, keep top service names per cat
+    const cats={};
+    Object.values(x.services).forEach(sv=>{
+      const c=cats[sv.cat]=cats[sv.cat]||{bytes:0,names:{}};
+      c.bytes+=sv.bytes; c.names[sv.service]=(c.names[sv.service]||0)+sv.bytes+1;
+    });
+    const ordered = Object.keys(cats)
+      .sort((a,b)=> (cats[b].bytes-cats[a].bytes) || (CAT_ORDER.indexOf(a)-CAT_ORDER.indexOf(b)));
+    return {name, ip:x.ip, tx:x.tx, rx:x.rx, cats, ordered};
+  });
+}
+
+function renderSimple(s){
+  const list=buildSimple(s);
+  const wrap=el("cards");
+  if(!list.length){ wrap.innerHTML=`<div class="empty">${T().none_dev}</div>`; return; }
+  wrap.innerHTML = list.map(d=>{
+    // activity sentence from top non-noise categories
+    const meaningful=d.ordered.filter(c=>c!=="ads"&&c!=="other");
+    const phrase = meaningful.length
+      ? T().doing_prefix+" "+meaningful.slice(0,3).map(c=>T().act[c]).join(" / ")
+      : `<span class="mut">${T().quiet}</span>`;
+    const rows = d.ordered.slice(0,6).map(c=>{
+      const names=Object.keys(d.cats[c].names).sort((a,b)=>d.cats[c].names[b]-d.cats[c].names[a]).slice(0,4).join(", ");
+      return `<div class="row"><span class="cat cat-${c}">${T().cat[c]}</span><span class="names">${esc(names)}</span></div>`;
+    }).join("");
+    return `<div class="dev">
+      <div class="top">
+        <span class="name">${esc(d.name)}</span>
+        <span class="ip">${esc(d.ip)}</span>
+        <span class="bw">${T().up_short} ${fmtB(d.tx)} · ${T().down_short} ${fmtB(d.rx)}</span>
+      </div>
+      <div class="doing">${phrase}</div>
+      <div class="svc">${rows||`<span class="mut">${T().quiet}</span>`}</div>
+    </div>`;
+  }).join("");
+}
+
+function renderDetailed(s){
   const devs=s.devices||[]; el("ndev").textContent=devs.length;
   el("devs").innerHTML = devs.length? devs.map(d=>`<tr>
     <td class="host">${esc(d.ip)||"<span class=mut>?</span>"}</td>
@@ -209,8 +373,18 @@ async function tick(){
     <td class="mut">${esc(d.client)}</td><td class="host">${esc(d.name)}</td>
     <td><span class="chip">${esc(d.type)}</span></td><td class="mut">${esc(d.answer)}</td></tr>`).join("")
     : `<tr><td colspan=4 class=empty>${T().none_dns}</td></tr>`;
+}
 
+async function tick(){
+  let s; try{ s=await (await fetch("/api/state")).json(); }catch(e){ return; }
+  el("iface").textContent=s.iface; el("selfip").textContent=s.self_ip;
+  el("total").textContent=s.total_mb.toFixed(1)+" MB";
+  el("up").textContent=Math.round(s.uptime_sec)+"s";
+  const m=el("netmode");
+  m.className="pill mode "+(s.spoof?"spoof":"passive");
+  m.textContent=s.spoof?("MITM"+(s.spoof_list&&s.spoof_list.length?" ×"+s.spoof_list.length:"")):"passive";
   drawChart(s.series||[]);
+  if(view==="simple") renderSimple(s); else renderDetailed(s);
 }
 applyLang(); tick(); setInterval(tick,1000);
 </script>
