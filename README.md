@@ -37,7 +37,7 @@ make build
 Or with the Go toolchain directly:
 
 ```bash
-go build -o wtfi3 .
+go build -o wtfi3 ./cmd/wtfi3
 ```
 
 ## Usage

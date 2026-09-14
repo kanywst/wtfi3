@@ -2,6 +2,24 @@
 
 Thanks for your interest in improving wtfi3.
 
+## Project layout
+
+`main` is a thin wire-up; the domain logic lives in `internal/` packages so it stays testable and decoupled.
+
+```text
+cmd/wtfi3/main.go        entry point: parse config, wire packages, run(ctx)
+internal/config          Config struct and flag parsing (no globals)
+internal/netinfo         interface, subnet, and gateway resolution
+internal/capture         libpcap live/offline loop feeding a Consumer
+internal/aggregator      domain core: devices, flows, DNS, throughput, snapshot
+internal/spoof           ARP-spoof MITM, context-driven, reports into a Store
+internal/oui             embedded IEEE OUI vendor database
+internal/tlsmeta         TLS ClientHello SNI parser
+internal/web             *http.Server dashboard with graceful shutdown
+```
+
+Dependency direction: `capture` and `web` depend on `aggregator`; `spoof` reports into `aggregator` through a small `Store` interface; `aggregator` depends only on `netinfo`, `oui`, and `tlsmeta`. There are no import cycles, and lifecycle is driven by a single `context.Context` cancelled on SIGINT/SIGTERM.
+
 ## Development setup
 
 wtfi3 depends on `libpcap` (via cgo).

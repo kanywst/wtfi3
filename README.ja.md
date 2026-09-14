@@ -37,7 +37,7 @@ make build
 Go ツールチェーンを直接使う場合:
 
 ```bash
-go build -o wtfi3 .
+go build -o wtfi3 ./cmd/wtfi3
 ```
 
 ## 使い方

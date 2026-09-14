@@ -6,10 +6,20 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-09-14
+
 ### Added
 
 - `hack/update-oui.sh` to regenerate the embedded MAC-vendor database reproducibly.
-- Unit tests for CIDR/host enumeration helpers (`deriveCIDR`, `hostsOf`, `nextIP`).
+- Per-package unit tests (`tlsmeta`, `oui`, `aggregator`, `spoof`).
+
+### Changed
+
+- Restructured into layered `internal/` packages (`config`, `netinfo`, `capture`, `aggregator`, `spoof`, `oui`, `tlsmeta`, `web`) with `cmd/wtfi3` as a thin entry point. No behavior change.
+- Lifecycle is now driven by `context.Context` cancelled on SIGINT/SIGTERM instead of ad-hoc channels.
+- Configuration is passed as a struct instead of package-level flag globals.
+- HTTP dashboard uses `*http.Server` with graceful `Shutdown`.
+- Logging uses the structured `log/slog` package.
 
 ## [0.1.1] - 2026-09-14
 
@@ -36,6 +46,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - Optional packet dump to `.pcap` (`-w`) for analysis in Wireshark.
 - Dashboard internationalization: English default with a Japanese toggle.
 
-[Unreleased]: https://github.com/kanywst/wtfi3/compare/v0.1.1...HEAD
+[Unreleased]: https://github.com/kanywst/wtfi3/compare/v0.2.0...HEAD
+[0.2.0]: https://github.com/kanywst/wtfi3/compare/v0.1.1...v0.2.0
 [0.1.1]: https://github.com/kanywst/wtfi3/compare/v0.1.0...v0.1.1
 [0.1.0]: https://github.com/kanywst/wtfi3/releases/tag/v0.1.0

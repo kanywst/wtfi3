@@ -5,7 +5,7 @@ LDFLAGS := -X main.version=$(VERSION)
 .PHONY: build test lint fmt run clean sample
 
 build:
-	go build -ldflags "$(LDFLAGS)" -o $(BINARY) .
+	go build -ldflags "$(LDFLAGS)" -o $(BINARY) ./cmd/wtfi3
 
 test:
 	go test ./...

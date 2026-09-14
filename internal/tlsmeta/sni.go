@@ -1,34 +1,14 @@
-package main
+// Package tlsmeta extracts clear-text metadata from TLS handshakes.
+package tlsmeta
 
 import (
-	_ "embed"
 	"encoding/binary"
 	"strings"
-	"sync"
 )
 
-//go:embed web/oui.tsv
-var ouiRaw string
-
-var (
-	ouiOnce sync.Once
-	ouiMap  map[string]string
-)
-
-func loadOUI() {
-	ouiMap = make(map[string]string, 52000)
-	for _, line := range strings.Split(ouiRaw, "\n") {
-		tab := strings.IndexByte(line, '\t')
-		if tab < 0 {
-			continue
-		}
-		ouiMap[line[:tab]] = strings.TrimSpace(line[tab+1:])
-	}
-}
-
-// parseSNI extracts the SNI host from a TLS ClientHello payload.
-// Returns "" if the payload is not a ClientHello or has no SNI.
-func parseSNI(b []byte) string {
+// SNI extracts the Server Name Indication host from a TLS ClientHello payload.
+// It returns "" if the payload is not a ClientHello or carries no SNI.
+func SNI(b []byte) string {
 	// TLS record: type(1)=0x16 handshake, version(2), length(2)
 	if len(b) < 5 || b[0] != 0x16 {
 		return ""
@@ -43,13 +23,11 @@ func parseSNI(b []byte) string {
 		return ""
 	}
 	p = p[4:]
-	// version(2) + random(32)
-	if len(p) < 34 {
+	if len(p) < 34 { // version(2) + random(32)
 		return ""
 	}
 	p = p[34:]
-	// session id
-	if len(p) < 1 {
+	if len(p) < 1 { // session id
 		return ""
 	}
 	sl := int(p[0])
@@ -58,8 +36,7 @@ func parseSNI(b []byte) string {
 		return ""
 	}
 	p = p[sl:]
-	// cipher suites
-	if len(p) < 2 {
+	if len(p) < 2 { // cipher suites
 		return ""
 	}
 	cs := int(binary.BigEndian.Uint16(p))
@@ -68,8 +45,7 @@ func parseSNI(b []byte) string {
 		return ""
 	}
 	p = p[cs:]
-	// compression methods
-	if len(p) < 1 {
+	if len(p) < 1 { // compression methods
 		return ""
 	}
 	cm := int(p[0])
@@ -78,8 +54,7 @@ func parseSNI(b []byte) string {
 		return ""
 	}
 	p = p[cm:]
-	// extensions
-	if len(p) < 2 {
+	if len(p) < 2 { // extensions
 		return ""
 	}
 	extLen := int(binary.BigEndian.Uint16(p))
@@ -99,7 +74,6 @@ func parseSNI(b []byte) string {
 		if etype != 0x00 { // server_name
 			continue
 		}
-		// server_name_list: list len(2), name type(1), name len(2), name
 		if len(body) < 5 {
 			return ""
 		}
@@ -126,26 +100,4 @@ func isHostish(s string) bool {
 		return false
 	}
 	return strings.Contains(s, ".")
-}
-
-// vendorLookup maps an OUI prefix to a vendor label using the embedded IEEE
-// OUI database (~52k entries). Unknown prefixes return the raw OUI; a
-// locally-administered/randomized MAC is flagged.
-func vendorLookup(mac string) string {
-	if len(mac) < 8 {
-		return ""
-	}
-	ouiOnce.Do(loadOUI)
-	oui := strings.ToLower(mac[:8])
-	if v, ok := ouiMap[oui]; ok {
-		return v
-	}
-	// Locally-administered / randomized MAC (2nd hex nibble is 2,6,a,e)
-	if len(mac) >= 2 {
-		switch mac[1] {
-		case '2', '6', 'a', 'A', 'e', 'E':
-			return "randomized?"
-		}
-	}
-	return oui
 }
