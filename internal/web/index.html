@@ -172,6 +172,7 @@ const I18N = {
     view_simple:"Simple view", view_detailed:"Detailed view",
     unknown_dev:"Unknown device", this_dev:"This Mac", router:"Router",
     doing_prefix:"Looks like:", quiet:"quiet, no recognizable services yet", up_short:"up", down_short:"down",
+    dns_only:"looked up only",
     cat:{video:"Video",shopping:"Shopping",email:"Email",social:"Social",music:"Music",
       messaging:"Messaging",gaming:"Gaming",cloud:"Cloud/Sync",dev:"Developer",
       ads:"Ads/Telemetry",adult:"Adult",other:"Other"},
@@ -194,6 +195,7 @@ const I18N = {
     view_simple:"かんたん表示", view_detailed:"くわしい表示",
     unknown_dev:"不明なデバイス", this_dev:"このMac", router:"ルーター",
     doing_prefix:"たぶん:", quiet:"目立った通信なし", up_short:"上り", down_short:"下り",
+    dns_only:"名前解決のみ",
     cat:{video:"動画",shopping:"買い物",email:"メール",social:"SNS",music:"音楽",
       messaging:"メッセージ",gaming:"ゲーム",cloud:"クラウド同期",dev:"開発",
       ads:"広告・計測",adult:"アダルト",other:"その他"},
@@ -329,14 +331,17 @@ function renderSimple(s){
   const wrap=el("cards");
   if(!list.length){ wrap.innerHTML=`<div class="empty">${T().none_dev}</div>`; return; }
   wrap.innerHTML = list.map(d=>{
-    // activity sentence from top non-noise categories
-    const meaningful=d.ordered.filter(c=>c!=="ads"&&c!=="other");
+    // Activity sentence is drawn only from categories with real transferred
+    // bytes: a lone DNS lookup (bytes == 0) is not evidence of active use, so
+    // it appears as a chip below but never drives the "Looks like" claim.
+    const meaningful=d.ordered.filter(c=>c!=="ads"&&c!=="other"&&d.cats[c].bytes>0);
     const phrase = meaningful.length
       ? T().doing_prefix+" "+meaningful.slice(0,3).map(c=>T().act[c]).join(" / ")
       : `<span class="mut">${T().quiet}</span>`;
     const rows = d.ordered.slice(0,6).map(c=>{
       const names=Object.keys(d.cats[c].names).sort((a,b)=>d.cats[c].names[b]-d.cats[c].names[a]).slice(0,4).join(", ");
-      return `<div class="row"><span class="cat cat-${c}">${T().cat[c]}</span><span class="names">${esc(names)}</span></div>`;
+      const seen=d.cats[c].bytes>0 ? "" : ` <span class="mut">(${T().dns_only})</span>`;
+      return `<div class="row"><span class="cat cat-${c}">${T().cat[c]}</span><span class="names">${esc(names)}${seen}</span></div>`;
     }).join("");
     return `<div class="dev">
       <div class="top">
