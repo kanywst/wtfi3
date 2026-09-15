@@ -153,6 +153,22 @@ func TestIPv6Attribution(t *testing.T) {
 	}
 }
 
+func TestLinkLocalExcluded(t *testing.T) {
+	_, ll, _ := net.ParseCIDR("fe80::/64")
+	_, g6, _ := net.ParseCIDR("2001:db8:1::/64")
+	self := &netinfo.Self{Name: "en0", MAC: net.HardwareAddr{0, 0, 0, 0, 0, 1}, Nets: []*net.IPNet{ll, g6}}
+	st := New(self, false, "test")
+	if st.isLANHost(net.ParseIP("fe80::20")) {
+		t.Fatal("link-local IPv6 should not be attributed as a device")
+	}
+	if st.isLANHost(net.ParseIP("169.254.1.2")) {
+		t.Fatal("IPv4 link-local (APIPA) should not be attributed")
+	}
+	if !st.isLANHost(net.ParseIP("2001:db8:1::20")) {
+		t.Fatal("global IPv6 host should be attributed")
+	}
+}
+
 func TestSpoofDedupFilter(t *testing.T) {
 	self := testSelf()
 	st := New(self, true, "test") // spoof mode

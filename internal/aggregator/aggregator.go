@@ -129,10 +129,15 @@ func broadcastOf(n *net.IPNet) net.IP {
 	return b
 }
 
-// isLANHost reports whether ip is a real host on one of our on-link prefixes
-// (IPv4 or IPv6), excluding the network address, IPv4 broadcast, and multicast.
+// isLANHost reports whether ip is a real routable host on one of our on-link
+// prefixes (IPv4 or IPv6), excluding the network address, IPv4 broadcast,
+// multicast, and link-local addresses. Link-local is excluded because every
+// IPv6 host also auto-configures an fe80::/64 address, which would otherwise
+// fragment a single device into several rows. (A dual-stack device can still
+// appear as one IPv4 and one global-IPv6 row; correlating those needs NDP/DHCP
+// state we do not track.)
 func (s *State) isLANHost(ip net.IP) bool {
-	if ip == nil || ip.IsMulticast() || ip.IsUnspecified() {
+	if ip == nil || ip.IsMulticast() || ip.IsUnspecified() || ip.IsLinkLocalUnicast() {
 		return false
 	}
 	for _, ln := range s.nets {
