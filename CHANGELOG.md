@@ -6,14 +6,17 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+## [0.5.0] - 2026-09-15
+
 ### Added
 
-- IPv6 device attribution: hosts on any on-link IPv4 or IPv6 prefix are tracked, not just the primary IPv4 subnet.
+- IPv6 device attribution: hosts on any on-link IPv4 or IPv6 prefix are tracked, not just the primary IPv4 subnet. Link-local addresses are excluded so a device is not fragmented into multiple rows.
 - README screenshots of the Simple and Detailed views.
 
 ### Changed
 
 - The dashboard receives live updates over a Server-Sent Events stream (`/api/stream`) instead of polling, and falls back to polling `/api/state` if the stream is unavailable.
+- ARP-spoof mode now fails with a clear error when the interface has no IPv4 address (ARP is IPv4-only).
 
 ## [0.4.0] - 2026-09-15
 
@@ -80,7 +83,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - Optional packet dump to `.pcap` (`-w`) for analysis in Wireshark.
 - Dashboard internationalization: English default with a Japanese toggle.
 
-[Unreleased]: https://github.com/kanywst/wtfi3/compare/v0.4.0...HEAD
+[Unreleased]: https://github.com/kanywst/wtfi3/compare/v0.5.0...HEAD
+[0.5.0]: https://github.com/kanywst/wtfi3/compare/v0.4.0...v0.5.0
 [0.4.0]: https://github.com/kanywst/wtfi3/compare/v0.3.0...v0.4.0
 [0.3.0]: https://github.com/kanywst/wtfi3/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/kanywst/wtfi3/compare/v0.1.1...v0.2.0
