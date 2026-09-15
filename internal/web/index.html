@@ -333,9 +333,10 @@ function applyView(){
   el("view").textContent = view==="simple" ? T().view_detailed : T().view_simple;
   el("view").classList.toggle("on", view==="simple");
 }
-el("lang").onclick = ()=>{ lang = lang==="en"?"ja":"en"; try{localStorage.setItem("wtfi3_lang",lang)}catch(e){} applyLang(); tick(); };
-el("view").onclick = ()=>{ view = view==="simple"?"detailed":"simple"; try{localStorage.setItem("wtfi3_view",view)}catch(e){} applyView(); tick(); };
+el("lang").onclick = ()=>{ lang = lang==="en"?"ja":"en"; try{localStorage.setItem("wtfi3_lang",lang)}catch(e){} applyLang(); if(LAST) render(LAST); };
+el("view").onclick = ()=>{ view = view==="simple"?"detailed":"simple"; try{localStorage.setItem("wtfi3_view",view)}catch(e){} applyView(); if(LAST) render(LAST); };
 
+let LAST=null;   // most recent snapshot, for re-render on toggle/rename
 // rename is triggered from a card button via event delegation (no inline
 // onclick), so a device key never has to be interpolated into a JS string.
 function renameDev(key){
@@ -344,7 +345,7 @@ function renameDev(key){
   if(v===null) return;
   if(v.trim()) NICK[key]=v.trim(); else delete NICK[key];
   try{localStorage.setItem("wtfi3_nick", JSON.stringify(NICK))}catch(e){}
-  tick();
+  if(LAST) render(LAST);
 }
 el("cards").addEventListener("click", e=>{
   const b = e.target.closest(".rename");
@@ -488,8 +489,8 @@ function renderDetailed(s){
     : `<tr><td colspan=4 class=empty>${T().none_dns}</td></tr>`;
 }
 
-async function tick(){
-  let s; try{ s=await (await fetch("/api/state")).json(); }catch(e){ return; }
+function render(s){
+  LAST=s;
   el("iface").textContent=s.iface; el("selfip").textContent=s.self_ip;
   el("total").textContent=s.total_mb.toFixed(1)+" MB";
   el("up").textContent=Math.round(s.uptime_sec)+"s";
@@ -499,7 +500,21 @@ async function tick(){
   drawChart(s.series||[]);
   if(view==="simple") renderSimple(s); else renderDetailed(s);
 }
-applyLang(); tick(); setInterval(tick,1000);
+
+// Prefer a Server-Sent Events push stream; fall back to polling if it fails.
+let polling=false;
+function startPolling(){
+  if(polling) return; polling=true;
+  const poll=async()=>{ try{ render(await (await fetch("/api/state")).json()); }catch(e){} };
+  poll(); setInterval(poll,1000);
+}
+function connect(){
+  if(!("EventSource" in window)){ startPolling(); return; }
+  const es=new EventSource("/api/stream");
+  es.onmessage=e=>{ try{ render(JSON.parse(e.data)); }catch(_){}};
+  es.onerror=()=>{ es.close(); startPolling(); };
+}
+applyLang(); connect();
 </script>
 </body>
 </html>

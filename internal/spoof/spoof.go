@@ -43,6 +43,10 @@ func Start(ctx context.Context, self *netinfo.Self, scanCIDR string, store Store
 	if self.Gateway == nil {
 		return nil, fmt.Errorf("no default gateway found; cannot spoof")
 	}
+	// ARP is IPv4-only; an IPv6-only interface has no usable source address.
+	if self.IP == nil || self.Mask == nil {
+		return nil, fmt.Errorf("ARP spoofing requires an IPv4 address on %s", self.Name)
+	}
 	h, err := pcap.OpenLive(self.Name, 1600, false, pcap.BlockForever)
 	if err != nil {
 		return nil, err

@@ -71,13 +71,18 @@ type Snapshot struct {
 
 // State is the concurrency-safe aggregate. All exported methods are safe for
 // concurrent use.
+// lanNet is an on-link prefix plus its IPv4 broadcast address (nil for IPv6).
+type lanNet struct {
+	net   *net.IPNet
+	bcast net.IP
+}
+
 type State struct {
 	mu      sync.Mutex
 	self    *netinfo.Self
 	spoof   bool
 	version string
-	subnet  *net.IPNet
-	bcast   net.IP
+	nets    []lanNet
 	arp     map[string]net.HardwareAddr
 	devices map[string]*Device
 	flows   map[string]*Flow
@@ -102,9 +107,12 @@ func New(self *netinfo.Self, spoof bool, version string) *State {
 		spoofed: map[string]bool{},
 		start:   time.Now(),
 	}
-	if self.Mask != nil {
-		s.subnet = &net.IPNet{IP: self.IP.Mask(self.Mask), Mask: self.Mask}
-		s.bcast = broadcastOf(s.subnet)
+	for _, n := range self.Nets {
+		ln := lanNet{net: &net.IPNet{IP: n.IP.Mask(n.Mask), Mask: n.Mask}}
+		if n.IP.To4() != nil {
+			ln.bcast = broadcastOf(ln.net)
+		}
+		s.nets = append(s.nets, ln)
 	}
 	return s
 }
@@ -121,38 +129,47 @@ func broadcastOf(n *net.IPNet) net.IP {
 	return b
 }
 
-// isLANHost reports whether ip is a real host on our subnet.
+// isLANHost reports whether ip is a real routable host on one of our on-link
+// prefixes (IPv4 or IPv6), excluding the network address, IPv4 broadcast,
+// multicast, and link-local addresses. Link-local is excluded because every
+// IPv6 host also auto-configures an fe80::/64 address, which would otherwise
+// fragment a single device into several rows. (A dual-stack device can still
+// appear as one IPv4 and one global-IPv6 row; correlating those needs NDP/DHCP
+// state we do not track.)
 func (s *State) isLANHost(ip net.IP) bool {
-	if ip == nil || s.subnet == nil {
+	if ip == nil || ip.IsMulticast() || ip.IsUnspecified() || ip.IsLinkLocalUnicast() {
 		return false
 	}
-	v4 := ip.To4()
-	if v4 == nil || !s.subnet.Contains(v4) {
-		return false
+	for _, ln := range s.nets {
+		if !ln.net.Contains(ip) {
+			continue
+		}
+		if ip.Equal(ln.net.IP) || (ln.bcast != nil && ip.Equal(ln.bcast)) {
+			return false
+		}
+		return true
 	}
-	return !v4.Equal(s.bcast) && !v4.Equal(s.subnet.IP) && !v4.IsMulticast()
+	return false
 }
 
 // SetARP records an ip->mac mapping learned by another goroutine (spoofer).
 func (s *State) SetARP(ip net.IP, mac net.HardwareAddr) {
-	v4 := ip.To4()
-	if v4 == nil || len(mac) != 6 {
+	if ip == nil || len(mac) != 6 {
 		return
 	}
 	s.mu.Lock()
-	s.arp[v4.String()] = append(net.HardwareAddr(nil), mac...)
+	s.arp[ip.String()] = append(net.HardwareAddr(nil), mac...)
 	s.mu.Unlock()
 }
 
 // LookupARP returns a learned MAC for ip.
 func (s *State) LookupARP(ip net.IP) (net.HardwareAddr, bool) {
-	v4 := ip.To4()
-	if v4 == nil {
+	if ip == nil {
 		return nil, false
 	}
 	s.mu.Lock()
 	defer s.mu.Unlock()
-	mac, ok := s.arp[v4.String()]
+	mac, ok := s.arp[ip.String()]
 	return mac, ok
 }
 
@@ -192,8 +209,8 @@ func (s *State) Consume(p gopacket.Packet) {
 	s.total += size
 
 	if eth != nil && s.isLANHost(srcIP) {
-		if _, ok := s.arp[srcIP.To4().String()]; !ok {
-			s.arp[srcIP.To4().String()] = append(net.HardwareAddr(nil), eth.SrcMAC...)
+		if k := srcIP.String(); s.arp[k] == nil {
+			s.arp[k] = append(net.HardwareAddr(nil), eth.SrcMAC...)
 		}
 	}
 	if s.isLANHost(srcIP) {
@@ -237,7 +254,7 @@ func (s *State) Consume(p gopacket.Packet) {
 
 // touchDevice updates a LAN device keyed by IP. Caller holds s.mu.
 func (s *State) touchDevice(ip net.IP, size uint64, isSrc bool) {
-	key := ip.To4().String()
+	key := ip.String()
 	d := s.devices[key]
 	if d == nil {
 		d = &Device{IP: key}

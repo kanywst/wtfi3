@@ -8,6 +8,16 @@ It is a passive/metadata visualizer, not a wiretap: TLS payloads are never decry
 
 [日本語版 README](README.ja.md) · [TCP/IP primer](docs/tcp-ip-primer.md) · [How it works (network internals)](docs/how-it-works.md)
 
+## Screenshots
+
+Simple view groups each device's traffic into plain-language services and activities, with a live per-device timeline of what it was doing:
+
+<img src="docs/assets/wtfi3-simple.png" alt="wtfi3 Simple view" width="900">
+
+Detailed view keeps the raw devices, top flows, and DNS lookups:
+
+<img src="docs/assets/wtfi3-detailed.png" alt="wtfi3 Detailed view" width="900">
+
 ## What you can see
 
 - **Devices**: every host on the LAN with IP, MAC, vendor (from the embedded IEEE OUI database), and up/down byte counts.

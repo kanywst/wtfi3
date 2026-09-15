@@ -12,3 +12,6 @@ coverage.txt
 # OS / editor
 .DS_Store
 *.swp
+
+# playwright MCP scratch
+.playwright-mcp/

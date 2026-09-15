@@ -11,15 +11,16 @@ import (
 // Self describes the capturing host's view of its network.
 type Self struct {
 	Name    string
-	IP      net.IP
+	IP      net.IP // primary IPv4 (for display and v4 ARP spoofing)
 	MAC     net.HardwareAddr
-	Mask    net.IPMask
+	Mask    net.IPMask   // mask of the primary IPv4
+	Nets    []*net.IPNet // every on-link prefix (IPv4 and IPv6)
 	Gateway net.IP
 	GwMAC   net.HardwareAddr // learned at runtime (spoof mode)
 }
 
-// Lookup gathers the IPv4 address, mask, MAC, and default gateway for the named
-// interface.
+// Lookup gathers the on-link prefixes (IPv4 and IPv6), the primary IPv4
+// address, MAC, and default gateway for the named interface.
 func Lookup(name string) (*Self, error) {
 	ifc, err := net.InterfaceByName(name)
 	if err != nil {
@@ -28,17 +29,22 @@ func Lookup(name string) (*Self, error) {
 	addrs, _ := ifc.Addrs()
 	var ip net.IP
 	var mask net.IPMask
+	var nets []*net.IPNet
 	for _, a := range addrs {
-		if ipn, ok := a.(*net.IPNet); ok && ipn.IP.To4() != nil {
+		ipn, ok := a.(*net.IPNet)
+		if !ok {
+			continue
+		}
+		nets = append(nets, ipn)
+		if ip == nil && ipn.IP.To4() != nil {
 			ip = ipn.IP.To4()
 			mask = ipn.Mask
-			break
 		}
 	}
-	if ip == nil {
-		return nil, fmt.Errorf("no IPv4 address on %s", name)
+	if len(nets) == 0 {
+		return nil, fmt.Errorf("no addresses on %s", name)
 	}
-	return &Self{Name: name, IP: ip, MAC: ifc.HardwareAddr, Mask: mask, Gateway: defaultGateway()}, nil
+	return &Self{Name: name, IP: ip, MAC: ifc.HardwareAddr, Mask: mask, Nets: nets, Gateway: defaultGateway()}, nil
 }
 
 // defaultGateway parses the system default route (macOS/BSD `route` output).
