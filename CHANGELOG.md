@@ -6,6 +6,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+### Added
+
+- IPv6 device attribution: hosts on any on-link IPv4 or IPv6 prefix are tracked, not just the primary IPv4 subnet.
+- README screenshots of the Simple and Detailed views.
+
+### Changed
+
+- The dashboard receives live updates over a Server-Sent Events stream (`/api/stream`) instead of polling, and falls back to polling `/api/state` if the stream is unavailable.
+
 ## [0.4.0] - 2026-09-15
 
 ### Added

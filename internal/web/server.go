@@ -5,6 +5,7 @@ import (
 	"context"
 	_ "embed"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"time"
 
@@ -29,6 +30,39 @@ func New(addr string, state *aggregator.State) *Server {
 	mux.HandleFunc("/api/state", func(w http.ResponseWriter, _ *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		_ = json.NewEncoder(w).Encode(state.Snapshot())
+	})
+	// Server-Sent Events: push a snapshot on connect and once per second, so the
+	// dashboard does not have to poll. Falls back to /api/state on the client if
+	// the stream is unavailable.
+	mux.HandleFunc("/api/stream", func(w http.ResponseWriter, r *http.Request) {
+		flusher, ok := w.(http.Flusher)
+		if !ok {
+			http.Error(w, "streaming unsupported", http.StatusInternalServerError)
+			return
+		}
+		w.Header().Set("Content-Type", "text/event-stream")
+		w.Header().Set("Cache-Control", "no-cache")
+		w.Header().Set("Connection", "keep-alive")
+		send := func() {
+			b, err := json.Marshal(state.Snapshot())
+			if err != nil {
+				return
+			}
+			_, _ = fmt.Fprintf(w, "data: %s\n\n", b)
+			flusher.Flush()
+		}
+		send()
+		ticker := time.NewTicker(time.Second)
+		defer ticker.Stop()
+		ctx := r.Context()
+		for {
+			select {
+			case <-ctx.Done():
+				return
+			case <-ticker.C:
+				send()
+			}
+		}
 	})
 	return &Server{http: &http.Server{
 		Addr:              addr,

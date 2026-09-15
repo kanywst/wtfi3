@@ -8,6 +8,16 @@
 
 [English README](README.md) · [TCP/IP 入門](docs/tcp-ip-primer.ja.md) · [仕組みの解説（ネットワーク内部）](docs/how-it-works.ja.md)
 
+## スクリーンショット
+
+かんたん表示は、各デバイスの通信を人間語のサービス名・活動にまとめ、その端末が何をしていたかのタイムラインも表示します:
+
+<img src="docs/assets/wtfi3-simple.png" alt="wtfi3 かんたん表示" width="900">
+
+くわしい表示は、生のデバイス・フロー上位・DNS を残します:
+
+<img src="docs/assets/wtfi3-detailed.png" alt="wtfi3 くわしい表示" width="900">
+
 ## 見えるもの
 
 - **デバイス**: LAN 上の各ホストを IP・MAC・メーカー（埋め込みの IEEE OUI データベース由来）・上り/下りバイト数付きで一覧。

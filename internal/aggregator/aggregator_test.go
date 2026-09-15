@@ -63,6 +63,7 @@ func testSelf() *netinfo.Self {
 	return &netinfo.Self{
 		Name: "en0", IP: net.IPv4(192, 168, 0, 15).To4(),
 		MAC: net.HardwareAddr{0xde, 0xf9, 0xc5, 0x00, 0x00, 0x01}, Mask: n.Mask,
+		Nets: []*net.IPNet{{IP: net.IPv4(192, 168, 0, 15), Mask: n.Mask}},
 	}
 }
 
@@ -114,6 +115,41 @@ func TestConsumeAttribution(t *testing.T) {
 	}
 	if !found {
 		t.Fatalf("SNI example.com not captured")
+	}
+}
+
+func synthPkt6(t *testing.T, srcMAC, dstMAC net.HardwareAddr, srcIP, dstIP net.IP, dport layers.TCPPort) gopacket.Packet {
+	t.Helper()
+	eth := &layers.Ethernet{SrcMAC: srcMAC, DstMAC: dstMAC, EthernetType: layers.EthernetTypeIPv6}
+	ip := &layers.IPv6{Version: 6, NextHeader: layers.IPProtocolTCP, HopLimit: 64, SrcIP: srcIP, DstIP: dstIP}
+	tcp := &layers.TCP{SrcPort: 40000, DstPort: dport}
+	_ = tcp.SetNetworkLayerForChecksum(ip)
+	buf := gopacket.NewSerializeBuffer()
+	opts := gopacket.SerializeOptions{FixLengths: true, ComputeChecksums: true}
+	if err := gopacket.SerializeLayers(buf, opts, eth, ip, tcp, gopacket.Payload([]byte("x"))); err != nil {
+		t.Fatalf("serialize: %v", err)
+	}
+	return gopacket.NewPacket(buf.Bytes(), layers.LayerTypeEthernet, gopacket.Default)
+}
+
+func TestIPv6Attribution(t *testing.T) {
+	_, n6, _ := net.ParseCIDR("2001:db8:1::/64")
+	me := net.HardwareAddr{0xde, 0xf9, 0xc5, 0x00, 0x00, 0x01}
+	phone := net.HardwareAddr{0x3c, 0x22, 0xfb, 0xaa, 0xbb, 0xcc}
+	self := &netinfo.Self{Name: "en0", MAC: me, Nets: []*net.IPNet{n6}}
+	st := New(self, false, "test")
+
+	phoneIP := net.ParseIP("2001:db8:1::20")
+	dstIP := net.ParseIP("2606:4700::1111")
+	st.Consume(synthPkt6(t, phone, me, phoneIP, dstIP, 443))
+
+	snap := st.Snapshot()
+	if len(snap.Devices) != 1 {
+		t.Fatalf("devices = %d, want 1 (IPv6 LAN host)", len(snap.Devices))
+	}
+	d := snap.Devices[0]
+	if d.IP != "2001:db8:1::20" || d.MAC != phone.String() || d.TxBytes == 0 {
+		t.Fatalf("v6 device = %+v", d)
 	}
 }
 

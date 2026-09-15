@@ -1,0 +1,53 @@
+- generic [active] [ref=e1]:
+  - banner [ref=e2]:
+    - generic [ref=e3]:
+      - generic [ref=e4]: wtfi3
+      - generic [ref=e5]: who is talking to whom on your WiFi
+    - generic [ref=e6]:
+      - generic [ref=e7]: iface en0
+      - generic [ref=e8]: host 192.168.0.15
+      - generic [ref=e9]: total 0.0 MB
+      - generic [ref=e10]: uptime 7s
+      - generic [ref=e11]: passive
+      - button "Detailed view" [ref=e12] [cursor=pointer]
+      - button "日本語" [ref=e13] [cursor=pointer]
+  - main [ref=e14]:
+    - heading "Throughput 0B/s · peak 2.8kB/s" [level=2] [ref=e16]:
+      - generic [ref=e17]: Throughput
+      - generic [ref=e18]: 0B/s · peak 2.8kB/s
+    - generic [ref=e21]:
+      - generic [ref=e22]:
+        - generic [ref=e23]:
+          - generic [ref=e24]: Apple
+          - generic [ref=e25]: 192.168.0.20
+          - button "rename" [ref=e26] [cursor=pointer]
+          - generic [ref=e27]: up 1.6k · down 106
+        - generic [ref=e28]: "Looks like: watching video"
+        - generic [ref=e29]: recent activity
+        - generic "2:18:37 · watching video" [ref=e31]
+        - generic [ref=e33]:
+          - generic [ref=e34]: Video
+          - generic [ref=e35]: YouTube
+      - generic [ref=e36]:
+        - generic [ref=e37]:
+          - generic [ref=e38]: Raspberry Pi Foundation
+          - generic [ref=e39]: 192.168.0.31
+          - button "rename" [ref=e40] [cursor=pointer]
+          - generic [ref=e41]: up 984 · down 106
+        - generic [ref=e42]: "Looks like: watching video"
+        - generic [ref=e43]: recent activity
+        - generic "2:18:37 · watching video" [ref=e45]
+        - generic [ref=e47]:
+          - generic [ref=e48]: Video
+          - generic [ref=e49]: Netflix
+      - generic [ref=e50]:
+        - generic [ref=e51]:
+          - generic [ref=e52]: Router
+          - generic [ref=e53]: 192.168.0.1
+          - button "rename" [ref=e54] [cursor=pointer]
+          - generic [ref=e55]: up 212 · down 0
+        - generic [ref=e56]: quiet, no recognizable services yet
+        - generic [ref=e57]: recent activity
+        - generic "idle" [ref=e59]
+        - generic [ref=e60]: quiet, no recognizable services yet
+  - contentinfo [ref=e62]: Refreshed every second. TLS payloads are not decrypted, only metadata (destination, volume, DNS, SNI) is shown.
