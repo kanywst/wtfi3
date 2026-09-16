@@ -50,7 +50,12 @@ func LookupWiFi(name string) *WiFi {
 	case "darwin":
 		out, ok := runWiFiCmd("ipconfig", "getsummary", name)
 		if !ok {
-			return nil
+			// The query itself failed (not "this is a wired interface" — a wired
+			// interface yields a successful summary with InterfaceType != WiFi and
+			// is filtered out by parseIPConfigSummary). Return a non-nil empty
+			// value so refreshWiFi keeps polling rather than latching a transient
+			// startup failure into permanent disablement.
+			return &WiFi{}
 		}
 		return parseIPConfigSummary(out)
 	case "linux":
