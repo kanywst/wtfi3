@@ -369,7 +369,10 @@ const TRACKERS = [
   [/(^|\.)samsungads\.|(^|\.)samsungacr\.|(^|\.)nmp-eventpub\.|(^|\.)pavv\.samsung\.|(^|\.)samsungcloudsolution\./, "Samsung TV telemetry", "iot"],
   [/(^|\.)lgtvsdp\.|(^|\.)lgtvcommon\.|(^|\.)lgappstv\./, "LG TV telemetry", "iot"],
   [/(^|\.)mob\.m-appservices\.|(^|\.)xiaomi\.net(\.|$)|(^|\.)miui\.|(^|\.)aliexpress-iot\./, "Xiaomi / IoT telemetry", "iot"],
-  [/(^|[.-])telemetry\.|(^|[.-])app-analytics(\.|$)|(^|[.-])eventtracker(\.|$)|(^|\.)logs?\.(collector|ingest)(\.|$)/, "Generic telemetry", "analytics"],
+  // Deliberately no generic "telemetry"/"metrics" catch-all: unlike the named
+  // entries above it can't tell a real third party from a device's own
+  // first-party infrastructure, so it would over-claim. Every entry here names
+  // a specific third-party operator.
 ];
 function trackerOf(host){
   host = (host||"").toLowerCase();
