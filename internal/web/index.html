@@ -343,7 +343,7 @@ const TRACKERS = [
   [/doubleclick\.net|googlesyndication|googleadservices|adservice\.google|googletagservices/, "Google Ads", "ads"],
   [/google-analytics|googletagmanager|analytics\.google|app-measurement\.com|ssl\.google-analytics/, "Google Analytics", "analytics"],
   [/crashlytics|fabric\.io|firebaselog|firebase-settings|firebaseremoteconfig|firebaseinstallations/, "Firebase / Crashlytics", "crash"],
-  [/facebook\.com\/tr|graph\.facebook|connect\.facebook|an\.facebook|fbcdn.*sdk/, "Facebook / Meta Pixel", "ads"],
+  [/facebook\.com\/tr|graph\.facebook|connect\.facebook|an\.facebook/, "Facebook / Meta Pixel", "ads"],
   [/analytics\.tiktok|business-api\.tiktok|ads-api\.tiktok/, "TikTok Pixel", "ads"],
   [/sc-static|tr\.snapchat|adsapi\.snapchat/, "Snapchat Pixel", "ads"],
   [/bat\.bing|clarity\.ms|c\.clarity/, "Microsoft Ads / Clarity", "analytics"],
@@ -366,7 +366,7 @@ const TRACKERS = [
   [/samsungads|samsungacr|nmp-eventpub|pavv\.samsung|samsungcloudsolution/, "Samsung TV telemetry", "iot"],
   [/lgtvsdp|lgtvcommon|lgappstv|smartshare\.lgtvsdp/, "LG TV telemetry", "iot"],
   [/mob\.m-appservices|xiaomi\.net|miui|tuya|aliexpress-iot/, "Xiaomi / IoT telemetry", "iot"],
-  [/telemetry|metrics\.|insights\.|app-analytics|eventtracker|logs?\.(collector|ingest)/, "Generic telemetry", "analytics"],
+  [/(^|[.-])telemetry\.|(^|\.)metrics\.|(^|\.)insights\.|app-analytics|eventtracker|logs?\.(collector|ingest)/, "Generic telemetry", "analytics"],
 ];
 function trackerOf(host){
   host = (host||"").toLowerCase();
