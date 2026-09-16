@@ -83,7 +83,9 @@ func parseIPConfigSummary(out string) *WiFi {
 	return w
 }
 
-// parseIWLink reads `iw dev <if> link` output.
+// parseIWLink reads `iw dev <if> link` output. Note: `iw link` does not report
+// the cipher/security, so WiFi.Security stays empty on Linux and the dashboard's
+// open-network warning is macOS-only for now (see the README).
 func parseIWLink(out string) *WiFi {
 	w := &WiFi{}
 	for _, line := range strings.Split(out, "\n") {
@@ -93,7 +95,11 @@ func parseIWLink(out string) *WiFi {
 			return w
 		case strings.HasPrefix(line, "Connected to "):
 			w.Connected = true
-			w.BSSID = strings.Fields(strings.TrimPrefix(line, "Connected to "))[0]
+			// Guard the index: malformed `iw` output must not panic a poll,
+			// since LookupWiFi is called periodically from EvictLoop.
+			if f := strings.Fields(strings.TrimPrefix(line, "Connected to ")); len(f) > 0 {
+				w.BSSID = f[0]
+			}
 		case strings.HasPrefix(line, "SSID: "):
 			w.SSID = strings.TrimPrefix(line, "SSID: ")
 		}
