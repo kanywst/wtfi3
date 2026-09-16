@@ -1,10 +1,12 @@
 package netinfo
 
 import (
+	"context"
 	"os"
 	"os/exec"
 	"runtime"
 	"strings"
+	"time"
 )
 
 // WiFi describes the wireless network the capture interface is attached to.
@@ -25,25 +27,41 @@ type WiFi struct {
 
 const redacted = "<redacted>"
 
+// runWiFiCmd runs a short-lived query command with a timeout, so a wedged driver
+// or hung tool cannot stall the periodic refresh that EvictLoop drives. It
+// retries once on error to absorb a transient failure at startup, which would
+// otherwise leave WiFi reporting disabled for the life of the process.
+func runWiFiCmd(name string, args ...string) (string, bool) {
+	for range 2 { // one retry to absorb a transient error
+		ctx, cancel := context.WithTimeout(context.Background(), 4*time.Second)
+		out, err := exec.CommandContext(ctx, name, args...).Output()
+		cancel()
+		if err == nil {
+			return string(out), true
+		}
+	}
+	return "", false
+}
+
 // LookupWiFi reports the wireless network on the named interface, or nil if the
 // interface is not wireless (or the platform tooling is unavailable).
 func LookupWiFi(name string) *WiFi {
 	switch runtime.GOOS {
 	case "darwin":
-		out, err := exec.Command("ipconfig", "getsummary", name).Output()
-		if err != nil {
+		out, ok := runWiFiCmd("ipconfig", "getsummary", name)
+		if !ok {
 			return nil
 		}
-		return parseIPConfigSummary(string(out))
+		return parseIPConfigSummary(out)
 	case "linux":
 		if _, err := os.Stat("/sys/class/net/" + name + "/wireless"); err != nil {
 			return nil
 		}
-		out, err := exec.Command("iw", "dev", name, "link").Output()
-		if err != nil {
+		out, ok := runWiFiCmd("iw", "dev", name, "link")
+		if !ok {
 			return &WiFi{}
 		}
-		return parseIWLink(string(out))
+		return parseIWLink(out)
 	}
 	return nil
 }
