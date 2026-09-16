@@ -91,6 +91,8 @@
   .trk-analytics{background:#e7f0fb;color:#3f7fce}.trk-ads{background:#f2eef0;color:#9a6a84}
   .trk-attribution{background:#fbf3dc;color:#a5852a}.trk-crash{background:#fdeee8;color:#c0664f}
   .trk-iot{background:#fde6ea;color:#c94f6d}
+  .trk-chip.trk-dns{opacity:.5;font-weight:500}
+  .trk-dnsonly-only .trk-h{color:var(--muted);font-weight:600}
   @media (prefers-color-scheme: dark){
     .trk-analytics{background:#1c2c44;color:#9fc2f0}.trk-ads{background:#302832;color:#d7a9c1}
     .trk-attribution{background:#332c14;color:#e6c86a}.trk-crash{background:#352019;color:#f0a78f}
@@ -198,7 +200,8 @@ const I18N = {
     wifi_hidden:"hidden (needs Location access)", wifi_off:"not associated", wifi_open:"open",
     new_badge:"NEW", new_one:"1 new device", new_many:"{n} new devices",
     tracker_one:"phoning home to 1 tracker", tracker_many:"phoning home to {n} trackers",
-    tracker_help:"Third-party analytics, ad, attribution, crash, and IoT-telemetry endpoints this device contacted. Named by operator, from DNS/SNI. TLS content is never decrypted.",
+    tracker_dns_one:"looked up 1 tracker (DNS only, no traffic seen)", tracker_dns_many:"looked up {n} trackers (DNS only, no traffic seen)",
+    tracker_help:"Third-party analytics, ad, attribution, crash, and IoT-telemetry endpoints this device contacted. Named by operator, from DNS/SNI. Chips marked DNS were only resolved, not confirmed by traffic. TLS content is never decrypted.",
     throughput:"Throughput", devices:"Devices", lookups:"DNS lookups", flows:"Top flows",
     th_ip:"IP", th_vendor:"vendor", th_mac:"MAC", th_up:"up", th_down:"down",
     th_client:"client", th_name:"name", th_type:"type", th_answer:"answer",
@@ -229,7 +232,8 @@ const I18N = {
     wifi_hidden:"非開示（位置情報の許可が必要）", wifi_off:"未接続", wifi_open:"暗号化なし",
     new_badge:"新規", new_one:"新規デバイス 1 台", new_many:"新規デバイス {n} 台",
     tracker_one:"トラッカー 1 件に通信中", tracker_many:"トラッカー {n} 件に通信中",
-    tracker_help:"この端末が接続したサードパーティの解析・広告・アトリビューション・クラッシュ・IoT テレメトリのエンドポイント。DNS/SNI から運営者名で表示。TLS の中身は復号しません。",
+    tracker_dns_one:"トラッカー 1 件を名前解決のみ（通信は未観測）", tracker_dns_many:"トラッカー {n} 件を名前解決のみ（通信は未観測）",
+    tracker_help:"この端末が接続したサードパーティの解析・広告・アトリビューション・クラッシュ・IoT テレメトリのエンドポイント。DNS/SNI から運営者名で表示。DNS と付いたものは名前解決のみで通信は未確認。TLS の中身は復号しません。",
     throughput:"通信量", devices:"デバイス", lookups:"DNS名前解決", flows:"フロー上位",
     th_ip:"IP", th_vendor:"メーカー", th_mac:"MAC", th_up:"上り", th_down:"下り",
     th_client:"端末", th_name:"名前", th_type:"種別", th_answer:"応答",
@@ -453,7 +457,7 @@ function buildSimple(s){
     const {service,cat}=classify(host), key=cat+"|"+service;
     (devs[ip].services[key]=devs[ip].services[key]||{service,cat,bytes:0}).bytes += bytes||0;
     const tr=trackerOf(host);
-    if(tr){ const t=devs[ip].trackers[tr.label]=devs[ip].trackers[tr.label]||{kind:tr.kind,hits:0}; t.hits++; }
+    if(tr){ const t=devs[ip].trackers[tr.label]=devs[ip].trackers[tr.label]||{kind:tr.kind,hits:0,bytes:0}; t.hits++; t.bytes+=bytes||0; }
   };
   (s.flows||[]).forEach(f=>{ if(f.sni) add(f.src, f.sni, f.bytes); });
   (s.dns||[]).forEach(e=> add(e.client, e.name, 0));
@@ -522,10 +526,17 @@ function renderSimple(s){
       const seen=d.cats[c].bytes>0 ? "" : ` <span class="mut">(${T().dns_only})</span>`;
       return `<div class="row"><span class="cat cat-${c}">${T().cat[c]}</span><span class="names">${esc(names)}${seen}</span></div>`;
     }).join("");
-    const nt=d.trackers.length;
-    const trackerBlock = nt ? `<div class="trk" title="${esc(T().tracker_help)}">
-      <span class="trk-h">🛰 ${nt===1?T().tracker_one:T().tracker_many.replace("{n}",nt)}</span>
-      <span class="trk-list">${d.trackers.slice(0,6).map(l=>`<span class="trk-chip trk-${d.trackerInfo[l].kind}">${esc(l)}</span>`).join("")}${nt>6?`<span class="mut">+${nt-6}</span>`:""}</span>
+    // Distinguish trackers with confirmed TLS/SNI traffic (bytes>0) from ones
+    // only seen as a DNS lookup, mirroring the (dns_only) marker on the service
+    // list. Only confirmed contacts count toward the "phoning home" headline.
+    const trk=d.trackers.map(l=>({label:l, ...d.trackerInfo[l]}));
+    const nc=trk.filter(t=>t.bytes>0).length;
+    const ordered=[...trk.filter(t=>t.bytes>0), ...trk.filter(t=>t.bytes===0)];
+    const head = nc ? "🛰 "+(nc===1?T().tracker_one:T().tracker_many.replace("{n}",nc))
+      : (trk.length===1?T().tracker_dns_one:T().tracker_dns_many.replace("{n}",trk.length));
+    const trackerBlock = trk.length ? `<div class="trk${nc?"":" trk-dnsonly-only"}" title="${esc(T().tracker_help)}">
+      <span class="trk-h">${head}</span>
+      <span class="trk-list">${ordered.slice(0,6).map(t=>`<span class="trk-chip trk-${t.kind}${t.bytes>0?"":" trk-dns"}">${esc(t.label)}${t.bytes>0?"":" · DNS"}</span>`).join("")}${trk.length>6?`<span class="mut">+${trk.length-6}</span>`:""}</span>
     </div>` : "";
     return `<div class="dev${d.isnew?" isnew":""}">
       <div class="top">
