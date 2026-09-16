@@ -67,11 +67,11 @@ go build -o wtfi3 ./cmd/wtfi3
 sudo ./wtfi3 -i en0
 
 # ARP-spoof MITM: relay the LAN through this host to capture every device's flows.
-# Use ONLY on a network you own or are authorized to test.
-sudo ./wtfi3 -i en0 -spoof
+# The -i-own-this-network acknowledgement is required; -spoof alone refuses to run.
+sudo ./wtfi3 -i en0 -spoof -i-own-this-network
 
 # Also dump raw packets for later analysis in Wireshark.
-sudo ./wtfi3 -i en0 -spoof -w capture.pcap
+sudo ./wtfi3 -i en0 -spoof -i-own-this-network -w capture.pcap
 
 # Offline replay of a saved capture (no root required).
 ./wtfi3 -r capture.pcap
@@ -87,7 +87,8 @@ Then open <http://localhost:8080>. The header has two toggles: a view toggle and
 | Flag | Default | Meaning |
 | --- | --- | --- |
 | `-i` | `en0` | Capture interface. |
-| `-spoof` | `false` | ARP-spoof the LAN to capture other devices (own network only). |
+| `-spoof` | `false` | ARP-spoof the LAN to capture other devices. Requires `-i-own-this-network`. |
+| `-i-own-this-network` | `false` | Acknowledge you own or are authorized to test this network. Required for `-spoof`. |
 | `-w` | (off) | Also write captured packets to this `.pcap` file. |
 | `-r` | (off) | Read packets from a `.pcap` file instead of a live interface (no root). |
 | `-listen` | `:8080` | Dashboard listen address. |
@@ -97,7 +98,7 @@ Then open <http://localhost:8080>. The header has two toggles: a view toggle and
 
 ## Legal and ethical use
 
-ARP spoofing is an active man-in-the-middle attack. Run `-spoof` only on networks you own or have explicit written authorization to test. Intercepting traffic on networks you do not control is illegal in most jurisdictions. The authors accept no liability for misuse.
+ARP spoofing is an active man-in-the-middle attack. wtfi3 is passive by default; the `-spoof` mode stays off unless you pass both `-spoof` and the explicit `-i-own-this-network` acknowledgement, so it can never be armed by a stray flag. Run it only on networks you own or have explicit written authorization to test. Intercepting traffic on networks you do not control is illegal in most jurisdictions. The authors accept no liability for misuse.
 
 ## Development
 
