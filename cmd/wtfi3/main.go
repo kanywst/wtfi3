@@ -70,6 +70,8 @@ func run() error {
 	go state.SampleLoop(ctx)
 
 	if cfg.Spoof && !cfg.Offline() {
+		slog.Warn("ARP-spoof MITM armed: this actively rewrites ARP caches on " + self.Name +
+			"; use only on a network you own or are authorized to test")
 		sp, err := spoof.Start(ctx, self, cfg.ScanCIDR, state)
 		if err != nil {
 			return fmt.Errorf("spoof: %w", err)

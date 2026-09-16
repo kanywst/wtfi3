@@ -67,11 +67,11 @@ go build -o wtfi3 ./cmd/wtfi3
 sudo ./wtfi3 -i en0
 
 # ARP スプーフ MITM: LAN をこのホスト経由に中継して全端末のフローを捕捉。
-# 自分が所有または許可を得たネットワークでのみ使うこと。
-sudo ./wtfi3 -i en0 -spoof
+# -i-own-this-network の明示的な承認が必須。-spoof 単体では起動しない。
+sudo ./wtfi3 -i en0 -spoof -i-own-this-network
 
 # 生パケットを Wireshark 用に保存も行う。
-sudo ./wtfi3 -i en0 -spoof -w capture.pcap
+sudo ./wtfi3 -i en0 -spoof -i-own-this-network -w capture.pcap
 
 # 保存済みキャプチャのオフライン再生（root 不要）。
 ./wtfi3 -r capture.pcap
@@ -87,7 +87,8 @@ sudo ./wtfi3 -i en0 -spoof -w capture.pcap
 | フラグ | 既定値 | 意味 |
 | --- | --- | --- |
 | `-i` | `en0` | キャプチャするインターフェース。 |
-| `-spoof` | `false` | LAN を ARP スプーフして他端末を捕捉（自ネットワークのみ）。 |
+| `-spoof` | `false` | LAN を ARP スプーフして他端末を捕捉。`-i-own-this-network` が必須。 |
+| `-i-own-this-network` | `false` | 自分が所有または許可を得たネットワークであることの承認。`-spoof` に必須。 |
 | `-w` | (無効) | 捕捉パケットをこの `.pcap` ファイルにも書き出す。 |
 | `-r` | (無効) | ライブではなく `.pcap` ファイルから読み込む（root 不要）。 |
 | `-listen` | `:8080` | ダッシュボードの待ち受けアドレス。 |
@@ -97,7 +98,7 @@ sudo ./wtfi3 -i en0 -spoof -w capture.pcap
 
 ## 法的・倫理的な利用について
 
-ARP スプーフは能動的な中間者攻撃です。`-spoof` は自分が所有するか明示的な書面による許可を得たネットワークでのみ実行してください。管理外のネットワークでの通信傍受は多くの法域で違法です。作者は誤用について一切の責任を負いません。
+ARP スプーフは能動的な中間者攻撃です。wtfi3 は既定でパッシブであり、`-spoof` は `-spoof` と明示的な `-i-own-this-network` 承認の両方を渡さない限り無効のままなので、フラグの渡し間違いで起動することはありません。自分が所有するか明示的な書面による許可を得たネットワークでのみ実行してください。管理外のネットワークでの通信傍受は多くの法域で違法です。作者は誤用について一切の責任を負いません。
 
 ## 開発
 
