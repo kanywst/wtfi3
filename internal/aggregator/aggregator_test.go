@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"net"
 	"testing"
+	"time"
 
 	"github.com/gopacket/gopacket"
 	"github.com/gopacket/gopacket/layers"
@@ -188,5 +189,34 @@ func TestSpoofDedupFilter(t *testing.T) {
 	}
 	if snap.Flows[0].Packets != 1 {
 		t.Fatalf("packets = %d, want 1", snap.Flows[0].Packets)
+	}
+}
+
+func TestIsNewArrival(t *testing.T) {
+	st := New(testSelf(), false, "test")
+	now := time.Now()
+	st.start = now.Add(-10 * time.Minute) // running well past the grace window
+
+	cases := []struct {
+		name      string
+		firstSeen time.Time
+		want      bool
+	}{
+		{"baseline host (seen during grace)", st.start.Add(5 * time.Second), false},
+		{"recent arrival", now.Add(-30 * time.Second), true},
+		{"arrival past the flag window", now.Add(-5 * time.Minute), false},
+	}
+	for _, c := range cases {
+		if got := st.isNewArrival(&Device{FirstSeen: c.firstSeen}); got != c.want {
+			t.Errorf("%s: isNewArrival = %v, want %v", c.name, got, c.want)
+		}
+	}
+}
+
+// Right after startup, the hosts already on the network must not all alert.
+func TestNoArrivalsDuringInitialBaseline(t *testing.T) {
+	st := New(testSelf(), false, "test")
+	if st.isNewArrival(&Device{FirstSeen: st.start.Add(time.Second)}) {
+		t.Error("device discovered during the initial baseline was flagged as new")
 	}
 }

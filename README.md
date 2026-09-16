@@ -24,6 +24,7 @@ Detailed view keeps the raw devices, top flows, and DNS lookups:
 - **Top flows**: source to destination, protocol, port, destination hostname (SNI), bytes, and packet counts.
 - **DNS lookups**: which client resolved which name, and the answer.
 - **Throughput**: a live bandwidth graph of the last two minutes.
+- **New-device alerts**: a device that joins after wtfi3 has settled is flagged `NEW` on its card and counted in the header, so you notice an unfamiliar host appearing. The hosts already present at startup form the baseline and are not flagged.
 
 ## What you cannot see
 

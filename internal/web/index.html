@@ -65,6 +65,11 @@
   .dev{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);padding:16px 18px}
   .dev .top{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}
   .dev .name{font-size:16px;font-weight:700;color:var(--ink)}
+  .dev.isnew{border-color:#e5a23a;box-shadow:0 0 0 1px #e5a23a55,var(--shadow)}
+  .newbadge{font-size:10px;font-weight:700;padding:2px 8px;border-radius:999px;background:#fbeccb;color:#a56a11;white-space:nowrap}
+  @media (prefers-color-scheme: dark){.newbadge{background:#4a3410;color:#f2c874}}
+  .mode.alert{background:#fbeccb;color:#a56a11}
+  @media (prefers-color-scheme: dark){.mode.alert{background:#4a3410;color:#f2c874}}
   .dev .ip{font-size:11px;color:var(--muted)}
   .dev .rename{cursor:pointer;font-size:11px;color:var(--muted);border:1px solid var(--line);border-radius:999px;padding:1px 8px;background:none;font-family:inherit}
   .dev .rename:hover{border-color:var(--accent);color:var(--accent)}
@@ -120,6 +125,7 @@
     <span class="pill"><span data-i18n="host"></span> <b id="selfip">-</b></span>
     <span class="pill"><span data-i18n="total"></span> <b id="total">0</b></span>
     <span class="pill"><span data-i18n="up"></span> <b id="up">0</b></span>
+    <span class="pill mode alert" id="newalert" hidden></span>
     <span class="pill mode passive" id="netmode">passive</span>
     <button id="view" class="btn"></button>
     <button id="lang" class="btn">日本語</button>
@@ -175,6 +181,7 @@ const I18N = {
   en: {
     tagline:"who is talking to whom on your WiFi",
     iface:"iface", host:"host", total:"total", up:"uptime",
+    new_badge:"NEW", new_one:"1 new device", new_many:"{n} new devices",
     throughput:"Throughput", devices:"Devices", lookups:"DNS lookups", flows:"Top flows",
     th_ip:"IP", th_vendor:"vendor", th_mac:"MAC", th_up:"up", th_down:"down",
     th_client:"client", th_name:"name", th_type:"type", th_answer:"answer",
@@ -202,6 +209,7 @@ const I18N = {
   ja: {
     tagline:"あなたのWiFiで誰が誰と通信しているか",
     iface:"インターフェース", host:"自分", total:"合計", up:"稼働",
+    new_badge:"新規", new_one:"新規デバイス 1 台", new_many:"新規デバイス {n} 台",
     throughput:"通信量", devices:"デバイス", lookups:"DNS名前解決", flows:"フロー上位",
     th_ip:"IP", th_vendor:"メーカー", th_mac:"MAC", th_up:"上り", th_down:"下り",
     th_client:"端末", th_name:"名前", th_type:"種別", th_answer:"応答",
@@ -378,8 +386,8 @@ function drawChart(series){
 function buildSimple(s){
   const selfIP=s.self_ip, gw=s.gateway;
   const devs={};
-  const dev = ip => devs[ip] || (devs[ip]={ip, services:{}, tx:0, rx:0, vendor:"", mac:""});
-  (s.devices||[]).forEach(d=>{ const x=dev(d.ip); x.tx=d.tx_bytes; x.rx=d.rx_bytes; x.vendor=d.vendor; x.mac=d.mac; });
+  const dev = ip => devs[ip] || (devs[ip]={ip, services:{}, tx:0, rx:0, vendor:"", mac:"", isnew:false});
+  (s.devices||[]).forEach(d=>{ const x=dev(d.ip); x.tx=d.tx_bytes; x.rx=d.rx_bytes; x.vendor=d.vendor; x.mac=d.mac; x.isnew=!!d.new; });
   const add = (ip, host, bytes) => {
     if(!ip||!host||!devs[ip]) return; // only attribute to known LAN devices
     const {service,cat}=classify(host), key=cat+"|"+service;
@@ -400,7 +408,7 @@ function buildSimple(s){
     });
     const ordered = Object.keys(cats)
       .sort((a,b)=> (cats[b].bytes-cats[a].bytes) || (CAT_ORDER.indexOf(a)-CAT_ORDER.indexOf(b)));
-    return {name, nickKey, ip:x.ip, tx:x.tx, rx:x.rx, cats, ordered};
+    return {name, nickKey, ip:x.ip, tx:x.tx, rx:x.rx, cats, ordered, isnew:x.isnew};
   });
 }
 
@@ -450,9 +458,10 @@ function renderSimple(s){
       const seen=d.cats[c].bytes>0 ? "" : ` <span class="mut">(${T().dns_only})</span>`;
       return `<div class="row"><span class="cat cat-${c}">${T().cat[c]}</span><span class="names">${esc(names)}${seen}</span></div>`;
     }).join("");
-    return `<div class="dev">
+    return `<div class="dev${d.isnew?" isnew":""}">
       <div class="top">
         <span class="name">${esc(d.name)}</span>
+        ${d.isnew?`<span class="newbadge">${T().new_badge}</span>`:""}
         <span class="ip">${esc(d.ip)}</span>
         <button class="rename" data-key="${esc(d.nickKey)}">${T().rename}</button>
         <span class="bw">${T().up_short} ${fmtB(d.tx)} · ${T().down_short} ${fmtB(d.rx)}</span>
@@ -467,7 +476,7 @@ function renderSimple(s){
 function renderDetailed(s){
   const devs=s.devices||[]; el("ndev").textContent=devs.length;
   el("devs").innerHTML = devs.length? devs.map(d=>`<tr>
-    <td class="host">${esc(d.ip)||"<span class=mut>?</span>"}</td>
+    <td class="host">${esc(d.ip)||"<span class=mut>?</span>"}${d.new?` <span class="newbadge">${T().new_badge}</span>`:""}</td>
     <td>${esc(d.vendor)}</td><td class="mut">${esc(d.mac)}</td>
     <td class="num tx">${fmtB(d.tx_bytes)}</td><td class="num rx">${fmtB(d.rx_bytes)}</td></tr>`).join("")
     : `<tr><td colspan=5 class=empty>${T().none_dev}</td></tr>`;
@@ -497,6 +506,9 @@ function render(s){
   const m=el("netmode");
   m.className="pill mode "+(s.spoof?"spoof":"passive");
   m.textContent=s.spoof?("MITM"+(s.spoof_list&&s.spoof_list.length?" ×"+s.spoof_list.length:"")):"passive";
+  const nnew=(s.devices||[]).filter(d=>d.new).length, na=el("newalert");
+  na.hidden = nnew===0;
+  if(nnew) na.textContent = "⚠ "+(nnew===1?T().new_one:T().new_many.replace("{n}",nnew));
   drawChart(s.series||[]);
   if(view==="simple") renderSimple(s); else renderDetailed(s);
 }
