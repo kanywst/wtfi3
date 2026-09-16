@@ -64,6 +64,16 @@ func run() error {
 		slog.Warn("offline mode: interface unavailable, LAN attribution limited", "iface", cfg.Iface)
 	}
 	slog.Info("starting", "version", version, "iface", self.Name, "ip", ipStr(self.IP), "gateway", ipStr(self.Gateway))
+	if w := self.WiFi; w != nil {
+		switch {
+		case !w.Connected:
+			slog.Info("wifi", "associated", false)
+		case w.Redacted:
+			slog.Info("wifi", "associated", true, "ssid", "withheld by OS (grant Location access to see it)", "security", w.Security)
+		default:
+			slog.Info("wifi", "associated", true, "ssid", w.SSID, "bssid", w.BSSID, "security", w.Security)
+		}
+	}
 
 	state := aggregator.New(self, cfg.Spoof, version)
 	go state.EvictLoop(ctx)
