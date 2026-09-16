@@ -17,6 +17,7 @@ type Self struct {
 	Nets    []*net.IPNet // every on-link prefix (IPv4 and IPv6)
 	Gateway net.IP
 	GwMAC   net.HardwareAddr // learned at runtime (spoof mode)
+	WiFi    *WiFi            // nil on wired interfaces
 }
 
 // Lookup gathers the on-link prefixes (IPv4 and IPv6), the primary IPv4
@@ -44,7 +45,10 @@ func Lookup(name string) (*Self, error) {
 	if len(nets) == 0 {
 		return nil, fmt.Errorf("no addresses on %s", name)
 	}
-	return &Self{Name: name, IP: ip, MAC: ifc.HardwareAddr, Mask: mask, Nets: nets, Gateway: defaultGateway()}, nil
+	return &Self{
+		Name: name, IP: ip, MAC: ifc.HardwareAddr, Mask: mask, Nets: nets,
+		Gateway: defaultGateway(), WiFi: LookupWiFi(name),
+	}, nil
 }
 
 // defaultGateway parses the system default route (macOS/BSD `route` output).

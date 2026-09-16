@@ -122,6 +122,7 @@
   </div>
   <div class="stats">
     <span class="pill"><span data-i18n="iface"></span> <b id="iface">-</b></span>
+    <span class="pill" id="wifipill" hidden><span data-i18n="wifi"></span> <b id="wifi">-</b></span>
     <span class="pill"><span data-i18n="host"></span> <b id="selfip">-</b></span>
     <span class="pill"><span data-i18n="total"></span> <b id="total">0</b></span>
     <span class="pill"><span data-i18n="up"></span> <b id="up">0</b></span>
@@ -180,7 +181,8 @@
 const I18N = {
   en: {
     tagline:"who is talking to whom on your WiFi",
-    iface:"iface", host:"host", total:"total", up:"uptime",
+    iface:"iface", host:"host", total:"total", up:"uptime", wifi:"wifi",
+    wifi_hidden:"hidden (needs Location access)", wifi_off:"not associated", wifi_open:"open",
     new_badge:"NEW", new_one:"1 new device", new_many:"{n} new devices",
     throughput:"Throughput", devices:"Devices", lookups:"DNS lookups", flows:"Top flows",
     th_ip:"IP", th_vendor:"vendor", th_mac:"MAC", th_up:"up", th_down:"down",
@@ -208,7 +210,8 @@ const I18N = {
   },
   ja: {
     tagline:"あなたのWiFiで誰が誰と通信しているか",
-    iface:"インターフェース", host:"自分", total:"合計", up:"稼働",
+    iface:"インターフェース", host:"自分", total:"合計", up:"稼働", wifi:"Wi-Fi",
+    wifi_hidden:"非開示（位置情報の許可が必要）", wifi_off:"未接続", wifi_open:"暗号化なし",
     new_badge:"新規", new_one:"新規デバイス 1 台", new_many:"新規デバイス {n} 台",
     throughput:"通信量", devices:"デバイス", lookups:"DNS名前解決", flows:"フロー上位",
     th_ip:"IP", th_vendor:"メーカー", th_mac:"MAC", th_up:"上り", th_down:"下り",
@@ -501,6 +504,15 @@ function renderDetailed(s){
 function render(s){
   LAST=s;
   el("iface").textContent=s.iface; el("selfip").textContent=s.self_ip;
+  // wifi pill: only for wireless captures. macOS withholds the SSID unless the
+  // process has Location access, so say "hidden" rather than implying no link.
+  const w=s.wifi;
+  el("wifipill").hidden = !w;
+  if(w){
+    let t = !w.connected ? T().wifi_off : (w.ssid || (w.redacted ? T().wifi_hidden : "-"));
+    if(w.connected && w.security==="NONE") t += " ⚠ "+T().wifi_open;
+    el("wifi").textContent = t;
+  }
   el("total").textContent=s.total_mb.toFixed(1)+" MB";
   el("up").textContent=Math.round(s.uptime_sec)+"s";
   const m=el("netmode");

@@ -63,9 +63,21 @@ type DNSEntry struct {
 	Time   time.Time `json:"time"`
 }
 
+// WiFiInfo reports the wireless network the capture interface is on. SSID and
+// BSSID are empty when the OS withholds them (macOS gates them behind Location
+// Services); Redacted distinguishes "withheld" from "not connected".
+type WiFiInfo struct {
+	Connected bool   `json:"connected"`
+	SSID      string `json:"ssid,omitempty"`
+	BSSID     string `json:"bssid,omitempty"`
+	Security  string `json:"security,omitempty"`
+	Redacted  bool   `json:"redacted,omitempty"`
+}
+
 // Snapshot is an immutable view served to the dashboard.
 type Snapshot struct {
 	Iface     string     `json:"iface"`
+	WiFi      *WiFiInfo  `json:"wifi,omitempty"`
 	SelfIP    string     `json:"self_ip"`
 	Gateway   string     `json:"gateway"`
 	Version   string     `json:"version"`
@@ -323,6 +335,12 @@ func (s *State) Snapshot() Snapshot {
 	if s.self.Gateway != nil {
 		snap.Gateway = s.self.Gateway.String()
 	}
+	if w := s.self.WiFi; w != nil {
+		snap.WiFi = &WiFiInfo{
+			Connected: w.Connected, SSID: w.SSID, BSSID: w.BSSID,
+			Security: w.Security, Redacted: w.Redacted,
+		}
+	}
 	for _, d := range s.devices {
 		d.New = s.isNewArrival(d)
 		snap.Devices = append(snap.Devices, d)
@@ -358,6 +376,24 @@ func sortByBytes(f []*Flow) {
 
 func sortStrings(s []string) { sort.Strings(s) }
 
+// refreshWiFi re-reads the wireless association so the dashboard follows a roam
+// to a different SSID. It is a no-op on wired interfaces and offline replay.
+func (s *State) refreshWiFi() {
+	s.mu.Lock()
+	wireless, name := s.self.WiFi != nil, s.self.Name
+	s.mu.Unlock()
+	if !wireless {
+		return
+	}
+	w := netinfo.LookupWiFi(name) // exec, so outside the lock
+	if w == nil {
+		return
+	}
+	s.mu.Lock()
+	s.self.WiFi = w
+	s.mu.Unlock()
+}
+
 // EvictLoop drops flows idle for more than two minutes until ctx is canceled.
 func (s *State) EvictLoop(ctx context.Context) {
 	t := time.NewTicker(15 * time.Second)
@@ -367,6 +403,7 @@ func (s *State) EvictLoop(ctx context.Context) {
 		case <-ctx.Done():
 			return
 		case <-t.C:
+			s.refreshWiFi()
 			cut := time.Now().Add(-2 * time.Minute)
 			s.mu.Lock()
 			for k, f := range s.flows {
