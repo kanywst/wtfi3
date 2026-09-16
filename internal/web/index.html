@@ -365,8 +365,8 @@ const TRACKERS = [
   [/xbcs\.net|(^|\.)roku\.com|scribe\.logs\.roku|cooper\.logs\.roku/, "Roku telemetry", "iot"],
   [/samsungads|samsungacr|nmp-eventpub|pavv\.samsung|samsungcloudsolution/, "Samsung TV telemetry", "iot"],
   [/lgtvsdp|lgtvcommon|lgappstv|smartshare\.lgtvsdp/, "LG TV telemetry", "iot"],
-  [/mob\.m-appservices|xiaomi\.net|miui|tuya|aliexpress-iot/, "Xiaomi / IoT telemetry", "iot"],
-  [/(^|[.-])telemetry\.|(^|\.)metrics\.|(^|\.)insights\.|app-analytics|eventtracker|logs?\.(collector|ingest)/, "Generic telemetry", "analytics"],
+  [/mob\.m-appservices|xiaomi\.net|(^|\.)miui\.|aliexpress-iot/, "Xiaomi / IoT telemetry", "iot"],
+  [/(^|[.-])telemetry\.|(^|\.)metrics\.|(^|\.)insights\.|(^|[.-])app-analytics|(^|[.-])eventtracker|(^|\.)logs?\.(collector|ingest)/, "Generic telemetry", "analytics"],
 ];
 function trackerOf(host){
   host = (host||"").toLowerCase();
