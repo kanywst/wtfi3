@@ -22,14 +22,24 @@ import (
 
 // Device is a LAN host keyed by IP.
 type Device struct {
-	IP       string    `json:"ip"`
-	MAC      string    `json:"mac"`
-	Vendor   string    `json:"vendor"`
-	RxBytes  uint64    `json:"rx_bytes"`
-	TxBytes  uint64    `json:"tx_bytes"`
-	Packets  uint64    `json:"packets"`
-	LastSeen time.Time `json:"last_seen"`
+	IP        string    `json:"ip"`
+	MAC       string    `json:"mac"`
+	Vendor    string    `json:"vendor"`
+	RxBytes   uint64    `json:"rx_bytes"`
+	TxBytes   uint64    `json:"tx_bytes"`
+	Packets   uint64    `json:"packets"`
+	FirstSeen time.Time `json:"first_seen"`
+	LastSeen  time.Time `json:"last_seen"`
+	New       bool      `json:"new,omitempty"` // arrived after the initial baseline, still recent
 }
+
+const (
+	// newDeviceGrace treats every device discovered in the first moments after
+	// startup as the baseline (not an alert): those were already on the network.
+	newDeviceGrace = 20 * time.Second
+	// newDeviceWindow is how long a genuinely-new arrival stays flagged.
+	newDeviceWindow = 90 * time.Second
+)
 
 // Flow is a unidirectional conversation summary.
 type Flow struct {
@@ -257,7 +267,7 @@ func (s *State) touchDevice(ip net.IP, size uint64, isSrc bool) {
 	key := ip.String()
 	d := s.devices[key]
 	if d == nil {
-		d = &Device{IP: key}
+		d = &Device{IP: key, FirstSeen: time.Now()}
 		s.devices[key] = d
 	}
 	if d.MAC == "" {
@@ -294,6 +304,14 @@ func (s *State) recordDNS(client net.IP, dns *layers.DNS) {
 	}
 }
 
+// isNewArrival reports whether a device should be flagged as a new arrival: it
+// was first seen after the initial baseline window (so the hosts already on the
+// network at startup are not all flagged) and only recently. Caller holds s.mu.
+func (s *State) isNewArrival(d *Device) bool {
+	return d.FirstSeen.After(s.start.Add(newDeviceGrace)) &&
+		time.Since(d.FirstSeen) < newDeviceWindow
+}
+
 // Snapshot returns a sorted, bounded, copy-safe view of the current state.
 func (s *State) Snapshot() Snapshot {
 	s.mu.Lock()
@@ -306,6 +324,7 @@ func (s *State) Snapshot() Snapshot {
 		snap.Gateway = s.self.Gateway.String()
 	}
 	for _, d := range s.devices {
+		d.New = s.isNewArrival(d)
 		snap.Devices = append(snap.Devices, d)
 	}
 	sortByTotal(snap.Devices)
