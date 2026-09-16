@@ -26,6 +26,7 @@ Detailed view keeps the raw devices, top flows, and DNS lookups:
 - **Throughput**: a live bandwidth graph of the last two minutes.
 - **New-device alerts**: a device that joins after wtfi3 has settled is flagged `NEW` on its card and counted in the header, so you notice an unfamiliar host appearing. The hosts already present at startup form the baseline and are not flagged.
 - **The Wi-Fi you are on**: SSID and BSSID shown in the header when the capture interface is wireless, plus an open-network warning on macOS (the `iw` output used on Linux does not expose the cipher, so the unencrypted flag is macOS-only for now). On macOS 14+ the SSID and BSSID are gated behind Location Services, so an unauthorized process sees `hidden (needs Location access)` instead of the name; the link state is still reported correctly.
+- **Trackers a device phones home to**: the simple view names the operator behind common analytics, ad, attribution, crash-reporting, and IoT-telemetry endpoints (so `app-measurement.com` reads as `Google Analytics`, `tuyaus.com` as `Tuya cloud`), and shows how many distinct trackers each device contacted. The labels come from DNS/SNI only; TLS content is never decrypted.
 
 ## What you cannot see
 
