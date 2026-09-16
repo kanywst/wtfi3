@@ -83,6 +83,19 @@
   .svc .row{display:flex;align-items:center;gap:8px}
   .svc .cat{font-size:10px;font-weight:700;padding:2px 8px;border-radius:999px;white-space:nowrap}
   .svc .names{font-size:12px;color:var(--ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .trk{margin-top:12px;padding-top:10px;border-top:1px dashed var(--line)}
+  .trk-h{display:block;font-size:11px;font-weight:700;color:#b06a2e;margin-bottom:6px}
+  @media (prefers-color-scheme: dark){.trk-h{color:#e8a866}}
+  .trk-list{display:flex;flex-wrap:wrap;gap:5px}
+  .trk-chip{font-size:10px;font-weight:600;padding:2px 8px;border-radius:999px;background:var(--bg);color:var(--muted)}
+  .trk-analytics{background:#e7f0fb;color:#3f7fce}.trk-ads{background:#f2eef0;color:#9a6a84}
+  .trk-attribution{background:#fbf3dc;color:#a5852a}.trk-crash{background:#fdeee8;color:#c0664f}
+  .trk-iot{background:#fde6ea;color:#c94f6d}
+  @media (prefers-color-scheme: dark){
+    .trk-analytics{background:#1c2c44;color:#9fc2f0}.trk-ads{background:#302832;color:#d7a9c1}
+    .trk-attribution{background:#332c14;color:#e6c86a}.trk-crash{background:#352019;color:#f0a78f}
+    .trk-iot{background:#3a2028;color:#f0a0b4}
+  }
   .cat-video{background:#ffe6ee;color:#e5567f}
   .cat-shopping{background:#fff0e0;color:#d98420}
   .cat-email{background:#e7efff;color:#5a7bd8}
@@ -184,6 +197,8 @@ const I18N = {
     iface:"iface", host:"host", total:"total", up:"uptime", wifi:"wifi",
     wifi_hidden:"hidden (needs Location access)", wifi_off:"not associated", wifi_open:"open",
     new_badge:"NEW", new_one:"1 new device", new_many:"{n} new devices",
+    tracker_one:"phoning home to 1 tracker", tracker_many:"phoning home to {n} trackers",
+    tracker_help:"Third-party analytics, ad, attribution, crash, and IoT-telemetry endpoints this device contacted. Named by operator, from DNS/SNI. TLS content is never decrypted.",
     throughput:"Throughput", devices:"Devices", lookups:"DNS lookups", flows:"Top flows",
     th_ip:"IP", th_vendor:"vendor", th_mac:"MAC", th_up:"up", th_down:"down",
     th_client:"client", th_name:"name", th_type:"type", th_answer:"answer",
@@ -213,6 +228,8 @@ const I18N = {
     iface:"インターフェース", host:"自分", total:"合計", up:"稼働", wifi:"Wi-Fi",
     wifi_hidden:"非開示（位置情報の許可が必要）", wifi_off:"未接続", wifi_open:"暗号化なし",
     new_badge:"新規", new_one:"新規デバイス 1 台", new_many:"新規デバイス {n} 台",
+    tracker_one:"トラッカー 1 件に通信中", tracker_many:"トラッカー {n} 件に通信中",
+    tracker_help:"この端末が接続したサードパーティの解析・広告・アトリビューション・クラッシュ・IoT テレメトリのエンドポイント。DNS/SNI から運営者名で表示。TLS の中身は復号しません。",
     throughput:"通信量", devices:"デバイス", lookups:"DNS名前解決", flows:"フロー上位",
     th_ip:"IP", th_vendor:"メーカー", th_mac:"MAC", th_up:"上り", th_down:"下り",
     th_client:"端末", th_name:"名前", th_type:"種別", th_answer:"応答",
@@ -312,6 +329,46 @@ function classify(host){
   const name = parts.length>=2 ? parts[parts.length-2] : host;
   return {service: name ? name.charAt(0).toUpperCase()+name.slice(1) : host, cat:"other"};
 }
+// ---- tracker / reputation dictionary ----------------------------------------
+// Names the operator behind common tracking, analytics, attribution, and IoT
+// phone-home endpoints, so a device's "phoning home" list reads in plain
+// language (app-measurement.com -> Google/Firebase) instead of raw hostnames.
+// This is the labeling layer raw flow tools do not give you. [regex, label, kind]
+// kind is one of: analytics, ads, attribution, crash, iot.
+const TRACKERS = [
+  [/doubleclick\.net|googlesyndication|googleadservices|adservice\.google|googletagservices/, "Google Ads", "ads"],
+  [/google-analytics|googletagmanager|analytics\.google|app-measurement\.com|ssl\.google-analytics/, "Google Analytics", "analytics"],
+  [/crashlytics|fabric\.io|firebaselog|firebase-settings|firebaseremoteconfig|firebaseinstallations/, "Firebase / Crashlytics", "crash"],
+  [/facebook\.com\/tr|graph\.facebook|connect\.facebook|an\.facebook|fbcdn.*sdk/, "Facebook / Meta Pixel", "ads"],
+  [/analytics\.tiktok|business-api\.tiktok|ads-api\.tiktok/, "TikTok Pixel", "ads"],
+  [/sc-static|tr\.snapchat|adsapi\.snapchat/, "Snapchat Pixel", "ads"],
+  [/bat\.bing|clarity\.ms|c\.clarity/, "Microsoft Ads / Clarity", "analytics"],
+  [/scorecardresearch|comscore/, "Comscore", "analytics"],
+  [/criteo/, "Criteo", "ads"],
+  [/taboola/, "Taboola", "ads"],
+  [/outbrain/, "Outbrain", "ads"],
+  [/adnxs|adsrvr\.org|3lift|pubmatic|rubiconproject|openx\.net|casalemedia/, "Ad exchange (RTB)", "ads"],
+  [/amplitude\.com/, "Amplitude", "analytics"],
+  [/mixpanel/, "Mixpanel", "analytics"],
+  [/segment\.(io|com)|segmentapis/, "Segment", "analytics"],
+  [/sentry\.io|ingest\.sentry|o\d+\.ingest/, "Sentry", "crash"],
+  [/bugsnag|instabug|raygun/, "Crash reporting", "crash"],
+  [/adjust\.com|adj\.st/, "Adjust", "attribution"],
+  [/appsflyer/, "AppsFlyer", "attribution"],
+  [/branch\.io|bnc\.lt/, "Branch", "attribution"],
+  [/kochava|singular\.net|tenjin\.io/, "Mobile attribution", "attribution"],
+  [/tuyaus|tuyaeu|tuya\.com|tuyacn/, "Tuya cloud (IoT)", "iot"],
+  [/xbcs\.net|(^|\.)roku\.com|scribe\.logs\.roku|cooper\.logs\.roku/, "Roku telemetry", "iot"],
+  [/samsungads|samsungacr|nmp-eventpub|pavv\.samsung|samsungcloudsolution/, "Samsung TV telemetry", "iot"],
+  [/lgtvsdp|lgtvcommon|lgappstv|smartshare\.lgtvsdp/, "LG TV telemetry", "iot"],
+  [/mob\.m-appservices|xiaomi\.net|miui|tuya|aliexpress-iot/, "Xiaomi / IoT telemetry", "iot"],
+  [/telemetry|metrics\.|insights\.|app-analytics|eventtracker|logs?\.(collector|ingest)/, "Generic telemetry", "analytics"],
+];
+function trackerOf(host){
+  host = (host||"").toLowerCase();
+  for(const [re,label,kind] of TRACKERS){ if(re.test(host)) return {label,kind}; }
+  return null;
+}
 const CAT_ORDER = ["video","shopping","social","music","gaming","messaging","email","ai","search",
   "news","maps","finance","food","cloud","dev","adult","ads","other"];
 const NOISE = new Set(["ads","other"]);
@@ -389,12 +446,14 @@ function drawChart(series){
 function buildSimple(s){
   const selfIP=s.self_ip, gw=s.gateway;
   const devs={};
-  const dev = ip => devs[ip] || (devs[ip]={ip, services:{}, tx:0, rx:0, vendor:"", mac:"", isnew:false});
+  const dev = ip => devs[ip] || (devs[ip]={ip, services:{}, trackers:{}, tx:0, rx:0, vendor:"", mac:"", isnew:false});
   (s.devices||[]).forEach(d=>{ const x=dev(d.ip); x.tx=d.tx_bytes; x.rx=d.rx_bytes; x.vendor=d.vendor; x.mac=d.mac; x.isnew=!!d.new; });
   const add = (ip, host, bytes) => {
     if(!ip||!host||!devs[ip]) return; // only attribute to known LAN devices
     const {service,cat}=classify(host), key=cat+"|"+service;
     (devs[ip].services[key]=devs[ip].services[key]||{service,cat,bytes:0}).bytes += bytes||0;
+    const tr=trackerOf(host);
+    if(tr){ const t=devs[ip].trackers[tr.label]=devs[ip].trackers[tr.label]||{kind:tr.kind,hits:0}; t.hits++; }
   };
   (s.flows||[]).forEach(f=>{ if(f.sni) add(f.src, f.sni, f.bytes); });
   (s.dns||[]).forEach(e=> add(e.client, e.name, 0));
@@ -411,7 +470,9 @@ function buildSimple(s){
     });
     const ordered = Object.keys(cats)
       .sort((a,b)=> (cats[b].bytes-cats[a].bytes) || (CAT_ORDER.indexOf(a)-CAT_ORDER.indexOf(b)));
-    return {name, nickKey, ip:x.ip, tx:x.tx, rx:x.rx, cats, ordered, isnew:x.isnew};
+    const trackers = Object.keys(x.trackers)
+      .sort((a,b)=> x.trackers[b].hits-x.trackers[a].hits);
+    return {name, nickKey, ip:x.ip, tx:x.tx, rx:x.rx, cats, ordered, isnew:x.isnew, trackers, trackerInfo:x.trackers};
   });
 }
 
@@ -461,6 +522,11 @@ function renderSimple(s){
       const seen=d.cats[c].bytes>0 ? "" : ` <span class="mut">(${T().dns_only})</span>`;
       return `<div class="row"><span class="cat cat-${c}">${T().cat[c]}</span><span class="names">${esc(names)}${seen}</span></div>`;
     }).join("");
+    const nt=d.trackers.length;
+    const trackerBlock = nt ? `<div class="trk" title="${esc(T().tracker_help)}">
+      <span class="trk-h">🛰 ${nt===1?T().tracker_one:T().tracker_many.replace("{n}",nt)}</span>
+      <span class="trk-list">${d.trackers.slice(0,6).map(l=>`<span class="trk-chip trk-${d.trackerInfo[l].kind}">${esc(l)}</span>`).join("")}${nt>6?`<span class="mut">+${nt-6}</span>`:""}</span>
+    </div>` : "";
     return `<div class="dev${d.isnew?" isnew":""}">
       <div class="top">
         <span class="name">${esc(d.name)}</span>
@@ -472,6 +538,7 @@ function renderSimple(s){
       <div class="doing">${phrase}</div>
       ${timeStrip(d.ip)}
       <div class="svc">${rows||`<span class="mut">${T().quiet}</span>`}</div>
+      ${trackerBlock}
     </div>`;
   }).join("");
 }
