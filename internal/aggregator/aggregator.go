@@ -386,9 +386,10 @@ func (s *State) refreshWiFi() {
 		return
 	}
 	w := netinfo.LookupWiFi(name) // exec, so outside the lock
-	if w == nil {
-		return
-	}
+	// Assign even when w is nil: a wireless interface never yields nil here (a
+	// failed query returns a non-nil empty value), so nil means the interface is
+	// actually wired. Reverting to nil lets an interface that was misdetected as
+	// wireless by a transient startup failure correct itself and stop polling.
 	s.mu.Lock()
 	s.self.WiFi = w
 	s.mu.Unlock()
