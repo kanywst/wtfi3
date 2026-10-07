@@ -13,9 +13,18 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - Release binaries are built with Go 1.26.8. v0.5.0 and earlier were built with Go 1.25.0 and carried 22 reachable Go standard library vulnerabilities (crypto/tls, crypto/x509, encoding/asn1, net/http, net/url, and others). `go.mod` now pins `toolchain go1.26.8`; the minimum Go version for building from source is unchanged.
 - Bumped `golang.org/x/net` to v0.56.0 (GO-2026-5942; not reachable from wtfi3).
 
+### Added
+
+- The dashboard header and startup log show the WiFi network the capture interface is on (SSID, BSSID), with a warning when the network is unencrypted (#9).
+- New devices joining the LAN after startup are flagged with a `NEW` badge and a header alert (#11).
+- The simple view names the trackers each device phones home to (Google Analytics, Firebase / Crashlytics, Meta Pixel, Sentry, Tuya cloud, and others) and counts them per device (#12).
+
 ### Changed
 
+- **Breaking:** `-spoof` no longer runs on its own. ARP-spoof MITM now also requires `-i-own-this-network`, and `-spoof` alone exits with an error explaining why (#10). Add the flag to any script that uses `-spoof`.
 - CI runs `govulncheck` on every push and pull request.
+
+These features were merged after 0.5.0 and first shipped in this release. Given the `-spoof` change it should have been 0.6.0; it was tagged as a patch because it went out as a security rebuild.
 
 ## [0.5.0] - 2026-09-15
 
