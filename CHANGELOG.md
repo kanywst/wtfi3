@@ -6,6 +6,17 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+## [0.5.1] - 2026-10-07
+
+### Security
+
+- Release binaries are built with Go 1.26.8. v0.5.0 and earlier were built with Go 1.25.0 and carried 22 reachable Go standard library vulnerabilities (crypto/tls, crypto/x509, encoding/asn1, net/http, net/url, and others). `go.mod` now pins `toolchain go1.26.8`; the minimum Go version for building from source is unchanged.
+- Bumped `golang.org/x/net` to v0.56.0 (GO-2026-5942; not reachable from wtfi3).
+
+### Changed
+
+- CI runs `govulncheck` on every push and pull request.
+
 ## [0.5.0] - 2026-09-15
 
 ### Added
@@ -83,7 +94,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - Optional packet dump to `.pcap` (`-w`) for analysis in Wireshark.
 - Dashboard internationalization: English default with a Japanese toggle.
 
-[Unreleased]: https://github.com/kanywst/wtfi3/compare/v0.5.0...HEAD
+[Unreleased]: https://github.com/kanywst/wtfi3/compare/v0.5.1...HEAD
+[0.5.1]: https://github.com/kanywst/wtfi3/compare/v0.5.0...v0.5.1
 [0.5.0]: https://github.com/kanywst/wtfi3/compare/v0.4.0...v0.5.0
 [0.4.0]: https://github.com/kanywst/wtfi3/compare/v0.3.0...v0.4.0
 [0.3.0]: https://github.com/kanywst/wtfi3/compare/v0.2.0...v0.3.0
