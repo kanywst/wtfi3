@@ -91,3 +91,49 @@ func TestParseIWLink(t *testing.T) {
 		t.Errorf("malformed line: got %+v", w)
 	}
 }
+
+// Trimmed `iw dev wlan0 scan dump` with the associated BSS between two others,
+// so the parser has to pick the right entry and stop at the next "BSS" line.
+const scanDump = `BSS 11:22:33:44:55:66(on wlan0)
+	capability: ESS ShortSlotTime (0x0401)
+	SSID: cafe-free
+BSS 8c:fd:f0:11:22:33(on wlan0) -- associated
+	freq: 5180
+	capability: ESS Privacy ShortSlotTime (0x0411)
+	SSID: home-net
+	RSN:	 * Version: 1
+		 * Group cipher: CCMP
+		 * Pairwise ciphers: CCMP
+		 * Authentication suites: PSK SAE
+		 * Capabilities: 16-PTKSA-RC 1-GTKSA-RC (0x000c)
+	WPS:	 * Version: 1.0
+BSS aa:bb:cc:dd:ee:ff(on wlan0)
+	capability: ESS Privacy (0x0011)
+	SSID: corp
+	RSN:	 * Version: 1
+		 * Authentication suites: IEEE 802.1X
+`
+
+func TestParseIWScanSecurity(t *testing.T) {
+	cases := []struct {
+		name, out, bssid, want string
+	}{
+		{"mixed WPA2/WPA3", scanDump, "8c:fd:f0:11:22:33", "WPA2_WPA3_PSK"},
+		{"bssid case-insensitive", scanDump, "8C:FD:F0:11:22:33", "WPA2_WPA3_PSK"},
+		{"associated marker without bssid", scanDump, "", "WPA2_WPA3_PSK"},
+		{"open", scanDump, "11:22:33:44:55:66", "NONE"},
+		{"enterprise", scanDump, "aa:bb:cc:dd:ee:ff", "WPA2_EAP"},
+		{"not in cache", scanDump, "00:00:00:00:00:01", ""},
+		{"empty", "", "8c:fd:f0:11:22:33", ""},
+		{"wep", "BSS 01:02:03:04:05:06(on wlan0)\n\tcapability: ESS Privacy (0x0011)\n", "01:02:03:04:05:06", "WEP"},
+		{"wpa1 psk", "BSS 01:02:03:04:05:06(on wlan0)\n\tcapability: ESS Privacy (0x0011)\n\tWPA:\t * Version: 1\n\t\t * Authentication suites: PSK\n", "01:02:03:04:05:06", "WPA_PSK"},
+		{"wpa3 only", "BSS 01:02:03:04:05:06(on wlan0)\n\tcapability: ESS Privacy (0x0011)\n\tRSN:\t * Version: 1\n\t\t * Authentication suites: SAE\n", "01:02:03:04:05:06", "WPA3_SAE"},
+		{"owe is not open", "BSS 01:02:03:04:05:06(on wlan0)\n\tcapability: ESS Privacy (0x0011)\n\tRSN:\t * Version: 1\n\t\t * Authentication suites: OWE\n", "01:02:03:04:05:06", "OWE"},
+		{"malformed BSS line", "BSS \n\tcapability: ESS (0x0001)\n", "", ""},
+	}
+	for _, c := range cases {
+		if got := parseIWScanSecurity(c.out, c.bssid); got != c.want {
+			t.Errorf("%s: got %q, want %q", c.name, got, c.want)
+		}
+	}
+}
