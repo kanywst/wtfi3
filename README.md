@@ -10,7 +10,7 @@ It is a passive/metadata visualizer, not a wiretap: TLS payloads are never decry
 
 ## Screenshots
 
-Simple view groups each device's traffic into plain-language services and activities, with a live per-device timeline of what it was doing:
+Simple view opens with a one-sentence summary of what the network is doing, a live map of which device is talking to which service or tracker (lines animate while bytes flow), an activity feed, and a card per device (screenshot from `make demo` with synthetic traffic):
 
 <img src="docs/assets/wtfi3-simple.png" alt="wtfi3 Simple view" width="900">
 
@@ -82,7 +82,11 @@ sudo ./wtfi3 -i en0 -spoof -i-own-this-network -w capture.pcap
 
 Then open <http://localhost:8080>. The header has two toggles: a view toggle and a language toggle (English default, Japanese available).
 
-- **Simple view** (default) groups each device's traffic into plain-language services and activity categories (video, shopping, email, social, AI, search, news, maps, finance, food, and so on), so you can see at a glance what a device is doing and which services it is reaching. You can give each device a nickname, and every card shows a recent-activity timeline of what it was doing over the last minute.
+- **Simple view** (default) groups each device's traffic into plain-language services and activity categories (video, shopping, email, social, AI, search, news, maps, finance, food, and so on). It has four parts:
+  - A summary sentence and headline numbers: devices, current throughput, tracker companies, new devices.
+  - A **live map** from devices to services and trackers. Line width is bytes so far, and a line animates while bytes are flowing. Hover a node to isolate its connections; click a device to jump to its card.
+  - A **"what just happened" feed**: new devices, a device starting an activity, the first data sent to a tracker, throughput spikes. These events are also pinned on the throughput graph.
+  - A **card per device** with a device-type icon (guessed from the vendor and traffic; click it to correct), live up/down rate, a tracker badge (green 0, amber 1 to 4, red 5 or more), a one-minute activity timeline, and service chips. Give a device a nickname with ✎.
 - **Detailed view** shows the raw devices, top flows, and DNS tables.
 
 ### Flags
@@ -109,6 +113,10 @@ ARP spoofing is an active man-in-the-middle attack. wtfi3 is passive by default;
 make test         # run unit tests
 make lint         # run golangci-lint
 make build        # build with version stamp
+
+# Run the dashboard on synthetic, ever-changing household traffic
+# (no root, no network; reloads internal/web/index.html on every request):
+make demo         # http://localhost:8099
 
 # Regenerate a synthetic capture for offline testing:
 go run hack/gensample.go /tmp/sample.pcap

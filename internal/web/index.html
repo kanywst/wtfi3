@@ -5,162 +5,250 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>wtfi3</title>
 <style>
+  /* Dark "night radar" is the default; the light palette swaps the same tokens. */
   :root{
-    --bg:#fbf7ff; --card:#ffffff; --ink:#4a4560; --muted:#9a94ad; --line:#efe9f6;
-    --accent:#b39ddb; --accent2:#8fd9c8; --peach:#ffb4a2; --lav:#c8b6ff;
-    --tx:#f5a3b7; --rx:#8fd9c8; --shadow:0 6px 22px rgba(150,120,190,.13);
-    --radius:18px;
+    color-scheme: dark;
+    --bg:#070b14; --panel:#0e1524; --panel2:#121b2e; --line:#1c2740; --line2:#26334f;
+    --ink:#e7edf8; --muted:#8190ad; --dim:#4b5874;
+    --down:#38d6ff; --up:#ff5fa2; --live:#7cff9e; --warn:#ffb547; --bad:#ff6b6b; --ok:#4ade80;
+    --accent:#9d8cff; --glow:rgba(56,214,255,.35);
+    --radius:14px; --shadow:0 1px 0 rgba(255,255,255,.03) inset, 0 10px 30px rgba(0,0,0,.35);
+    --mono:ui-monospace,"SF Mono","JetBrains Mono",Menlo,Consolas,monospace;
   }
-  @media (prefers-color-scheme: dark){
+  @media (prefers-color-scheme: light){
     :root{
-      --bg:#191424; --card:#221a33; --ink:#ece7f5; --muted:#8b81a5; --line:#2e2440;
-      --accent:#c8b6ff; --accent2:#8fd9c8; --shadow:0 6px 22px rgba(0,0,0,.35);
+      color-scheme: light;
+      --bg:#f3f5fa; --panel:#ffffff; --panel2:#f7f9fd; --line:#e2e7f1; --line2:#d3dbea;
+      --ink:#101828; --muted:#5b6882; --dim:#98a3b8;
+      --down:#0089bf; --up:#d02f76; --live:#14a345; --warn:#bd7100; --bad:#d63031; --ok:#15924a;
+      --accent:#5a48d6; --glow:rgba(0,137,191,.25);
+      --shadow:0 1px 2px rgba(16,24,40,.05), 0 8px 24px rgba(16,24,40,.06);
     }
   }
   *{box-sizing:border-box}
-  body{margin:0;background:var(--bg);color:var(--ink);
-    font:14px/1.55 "Hiragino Maru Gothic ProN","Quicksand",ui-rounded,"SF Pro Rounded",system-ui,-apple-system,sans-serif}
-  a{color:var(--accent)}
-  header{padding:18px 22px;display:flex;gap:14px;flex-wrap:wrap;align-items:center}
-  .logo{font-size:22px;font-weight:700;letter-spacing:.5px;color:var(--accent)}
-  .logo b{color:var(--accent2)}
-  .tag{color:var(--muted);font-size:12px}
-  .stats{display:flex;gap:8px;flex-wrap:wrap;margin-left:auto;align-items:center}
-  .pill{background:var(--card);border:1px solid var(--line);border-radius:999px;padding:5px 12px;font-size:12px;box-shadow:var(--shadow)}
-  .pill b{color:var(--ink)}.pill span{color:var(--muted)}
-  .mode{border:none;font-weight:700}
-  .mode.passive{background:#eef7f3;color:#3aa88b}
-  .mode.spoof{background:#ffeef0;color:#e5738a}
-  @media (prefers-color-scheme: dark){.mode.passive{background:#1e3a33;color:#8fd9c8}.mode.spoof{background:#3a2230;color:#ffb4c4}}
-  .btn{cursor:pointer;background:var(--card);border:1px solid var(--line);border-radius:999px;padding:5px 12px;font-size:12px;color:var(--ink);box-shadow:var(--shadow);font-family:inherit}
-  .btn:hover{border-color:var(--accent)}
-  .btn.on{background:var(--accent);color:#fff;border-color:var(--accent)}
-  main{padding:6px 22px 26px}
-  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
-  @media(max-width:860px){.grid2{grid-template-columns:1fr}}
-  section{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;display:flex;flex-direction:column;margin-bottom:16px}
-  h2{font-size:12px;margin:0;padding:13px 18px;color:var(--muted);font-weight:700;letter-spacing:.4px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center}
-  h2 .count{background:var(--bg);color:var(--accent);border-radius:999px;padding:2px 9px;font-size:11px}
-  .scroll{overflow:auto;max-height:330px}
-  table{width:100%;border-collapse:collapse;font-size:13px}
-  th,td{text-align:left;padding:8px 18px;white-space:nowrap;border-bottom:1px solid var(--line)}
-  th{position:sticky;top:0;background:var(--card);color:var(--muted);font-weight:600;font-size:11px}
-  td.num{text-align:right;font-variant-numeric:tabular-nums}
-  tbody tr{transition:background .15s}
-  tbody tr:hover td{background:var(--bg)}
-  tbody tr:last-child td{border-bottom:none}
-  .host{color:var(--accent);font-weight:600}
-  .tx{color:var(--tx);font-weight:600}.rx{color:var(--rx);font-weight:600}.mut{color:var(--muted)}
-  .chip{padding:2px 9px;border-radius:999px;font-size:11px;background:var(--bg);color:var(--muted);font-weight:600}
-  .chip.tcp{background:#eef1ff;color:#7c8cff}.chip.udp{background:#eafaf4;color:#3aa88b}.chip.icmp{background:#fff2ea;color:#e59a6a}
-  @media (prefers-color-scheme: dark){.chip.tcp{background:#242a4a;color:#a9b6ff}.chip.udp{background:#1e3a33;color:#8fd9c8}.chip.icmp{background:#3a2c22;color:#ffc59a}}
-  .bar{height:6px;background:var(--bg);border-radius:999px;overflow:hidden;min-width:70px}
-  .bar>i{display:block;height:100%;border-radius:999px;background:linear-gradient(90deg,var(--lav),var(--accent2))}
-  .empty{padding:22px 18px;color:var(--muted);text-align:center}
-  #chart{width:100%;height:130px;display:block}
-  footer{padding:10px 22px 26px;color:var(--muted);font-size:11px;text-align:center}
+  body{margin:0;color:var(--ink);min-height:100vh;
+    background:
+      radial-gradient(1100px 520px at 0% -10%, color-mix(in srgb, var(--accent) 14%, transparent), transparent 70%),
+      radial-gradient(900px 480px at 100% -5%, color-mix(in srgb, var(--down) 10%, transparent), transparent 70%),
+      var(--bg);
+    font:14px/1.5 system-ui,-apple-system,"Segoe UI","Hiragino Sans","Noto Sans JP",sans-serif}
+  .mono{font-family:var(--mono);font-variant-numeric:tabular-nums}
+  .mut{color:var(--muted)}
+  button,select{font:inherit;color:inherit}
 
-  /* simple mode */
-  .cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:16px}
-  .dev{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);padding:16px 18px}
-  .dev .top{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}
-  .dev .name{font-size:16px;font-weight:700;color:var(--ink)}
-  .dev.isnew{border-color:#e5a23a;box-shadow:0 0 0 1px #e5a23a55,var(--shadow)}
-  .newbadge{font-size:10px;font-weight:700;padding:2px 8px;border-radius:999px;background:#fbeccb;color:#a56a11;white-space:nowrap}
-  @media (prefers-color-scheme: dark){.newbadge{background:#4a3410;color:#f2c874}}
-  .mode.alert{background:#fbeccb;color:#a56a11}
-  @media (prefers-color-scheme: dark){.mode.alert{background:#4a3410;color:#f2c874}}
-  .dev .ip{font-size:11px;color:var(--muted)}
-  .dev .rename{cursor:pointer;font-size:11px;color:var(--muted);border:1px solid var(--line);border-radius:999px;padding:1px 8px;background:none;font-family:inherit}
-  .dev .rename:hover{border-color:var(--accent);color:var(--accent)}
-  .dev .bw{margin-left:auto;font-size:11px;color:var(--muted);font-variant-numeric:tabular-nums}
-  .dev .doing{margin:8px 0 10px;font-size:13px;color:var(--ink);line-height:1.5}
-  .tl{display:flex;gap:2px;height:16px;margin:0 0 12px;align-items:stretch}
-  .tl .seg{flex:1 1 0;border-radius:2px;min-width:0}
-  .tl .seg.idle{background:var(--bg)}
-  .tl-label{font-size:10px;color:var(--muted);margin:-6px 0 10px}
-  .svc{display:flex;flex-direction:column;gap:6px}
-  .svc .row{display:flex;align-items:center;gap:8px}
-  .svc .cat{font-size:10px;font-weight:700;padding:2px 8px;border-radius:999px;white-space:nowrap}
-  .svc .names{font-size:12px;color:var(--ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-  .trk{margin-top:12px;padding-top:10px;border-top:1px dashed var(--line)}
-  .trk-h{display:block;font-size:11px;font-weight:700;color:#b06a2e;margin-bottom:6px}
-  @media (prefers-color-scheme: dark){.trk-h{color:#e8a866}}
-  .trk-list{display:flex;flex-wrap:wrap;gap:5px}
-  .trk-chip{font-size:10px;font-weight:600;padding:2px 8px;border-radius:999px;background:var(--bg);color:var(--muted)}
-  .trk-analytics{background:#e7f0fb;color:#3f7fce}.trk-ads{background:#f2eef0;color:#9a6a84}
-  .trk-attribution{background:#fbf3dc;color:#a5852a}.trk-crash{background:#fdeee8;color:#c0664f}
-  .trk-iot{background:#fde6ea;color:#c94f6d}
-  .trk-chip.trk-dns{opacity:.5;font-weight:500}
-  .trk-dnsonly-only .trk-h{color:var(--muted);font-weight:600}
-  @media (prefers-color-scheme: dark){
-    .trk-analytics{background:#1c2c44;color:#9fc2f0}.trk-ads{background:#302832;color:#d7a9c1}
-    .trk-attribution{background:#332c14;color:#e6c86a}.trk-crash{background:#352019;color:#f0a78f}
-    .trk-iot{background:#3a2028;color:#f0a0b4}
-  }
-  .cat-video{background:#ffe6ee;color:#e5567f}
-  .cat-shopping{background:#fff0e0;color:#d98420}
-  .cat-email{background:#e7efff;color:#5a7bd8}
-  .cat-social{background:#efe6ff;color:#8a5cd8}
-  .cat-music{background:#e6faf0;color:#2fa876}
-  .cat-messaging{background:#e6f7ff;color:#2f95c4}
-  .cat-gaming{background:#eee6ff;color:#7c5cff}
-  .cat-cloud{background:#eef1f5;color:#6b7a90}
-  .cat-dev{background:#e9eef2;color:#55707f}
-  .cat-ai{background:#e0f7f5;color:#0f9b96}
-  .cat-search{background:#e7f0fb;color:#3f7fce}
-  .cat-news{background:#fdeee8;color:#c0664f}
-  .cat-maps{background:#e8f7ee;color:#3aa86b}
-  .cat-finance{background:#fbf3dc;color:#b8912a}
-  .cat-food{background:#fdeee2;color:#e07a3f}
-  .cat-ads{background:#f2eef0;color:#9a8a92}
-  .cat-adult{background:#fde6ea;color:#c94f6d}
-  .cat-other{background:var(--bg);color:var(--muted)}
-  @media (prefers-color-scheme: dark){
-    .cat-video{background:#3a2230;color:#ff9dbd}.cat-shopping{background:#3a2c1c;color:#ffc98a}
-    .cat-email{background:#232a4a;color:#a9baff}.cat-social{background:#2c2246;color:#c9a9ff}
-    .cat-music{background:#1e3a2e;color:#8fe0b6}.cat-messaging{background:#1c3540;color:#8fd4ef}
-    .cat-gaming{background:#282246;color:#b6a9ff}.cat-cloud{background:#2a3038;color:#a9bccf}
-    .cat-dev{background:#243038;color:#9fc0cf}.cat-ai{background:#123634;color:#7fe3dd}
-    .cat-search{background:#1c2c44;color:#9fc2f0}.cat-news{background:#352019;color:#f0a78f}
-    .cat-maps{background:#173626;color:#8fe0b0}.cat-finance{background:#332c14;color:#e6c86a}
-    .cat-food{background:#33231a;color:#f0b48a}.cat-ads{background:#302a2e;color:#c7b3bd}
-    .cat-adult{background:#3a2028;color:#f0a0b4}.cat-other{background:var(--bg);color:var(--muted)}
+  /* header */
+  header{display:flex;gap:12px;flex-wrap:wrap;align-items:center;padding:16px 22px 6px}
+  .brand{display:flex;align-items:center;gap:10px}
+  .logo{font-size:20px;font-weight:800;letter-spacing:.3px}
+  .logo b{color:var(--down)}
+  .beacon{width:10px;height:10px;border-radius:50%;background:var(--live);box-shadow:0 0 0 0 var(--live);animation:beacon 2s infinite}
+  .beacon.stale{background:var(--dim);animation:none}
+  @keyframes beacon{0%{box-shadow:0 0 0 0 color-mix(in srgb,var(--live) 60%,transparent)}100%{box-shadow:0 0 0 12px transparent}}
+  .tagline{color:var(--muted);font-size:12px}
+  .chips{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-left:auto}
+  .chip{display:inline-flex;align-items:center;gap:6px;background:var(--panel);border:1px solid var(--line);border-radius:999px;padding:5px 11px;font-size:12px;white-space:nowrap}
+  .chip .k{color:var(--muted)}
+  .chip.mode-passive{color:var(--ok);border-color:color-mix(in srgb,var(--ok) 40%,var(--line))}
+  .chip.mode-spoof{color:var(--up);border-color:color-mix(in srgb,var(--up) 45%,var(--line))}
+  .chip.danger{color:var(--bad);border-color:color-mix(in srgb,var(--bad) 50%,var(--line))}
+  .seg{display:inline-flex;border:1px solid var(--line);border-radius:999px;overflow:hidden;background:var(--panel)}
+  .seg button{border:0;background:none;padding:5px 12px;font-size:12px;cursor:pointer;color:var(--muted)}
+  .seg button.on{background:color-mix(in srgb,var(--accent) 22%,transparent);color:var(--ink)}
+
+  main{padding:8px 22px 24px;max-width:1500px;margin:0 auto}
+  .panel{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);min-width:0}
+  .ph{display:flex;align-items:center;gap:10px;padding:12px 16px;border-bottom:1px solid var(--line)}
+  .ph h2{margin:0;font-size:12px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;color:var(--muted)}
+  .ph .aside{margin-left:auto;font-size:11px;color:var(--muted)}
+
+  /* hero */
+  .hero{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,1fr);gap:16px;align-items:stretch;margin:6px 0 16px}
+  @media(max-width:980px){.hero{grid-template-columns:1fr}}
+  .story{padding:18px 20px;font-size:clamp(17px,1.6vw,21px);line-height:1.5;font-weight:500}
+  .story b{font-weight:700}
+  .story .hl-new{color:var(--warn);font-weight:700}
+  .story .hl-trk{color:var(--bad);font-weight:700}
+  .story .hl-live{color:var(--down);font-weight:700}
+  .story .sub{display:block;margin-top:8px;font-size:12px;color:var(--muted);font-weight:400}
+  .tiles{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+  @media(max-width:560px){.tiles{grid-template-columns:repeat(2,minmax(0,1fr))}}
+  .tile{padding:14px 14px 12px;display:flex;flex-direction:column;gap:2px;position:relative;overflow:hidden}
+  .tile .lab{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;font-weight:700}
+  .tile .val{font-size:28px;font-weight:800;line-height:1.15;font-family:var(--mono);letter-spacing:-.5px}
+  .tile .val small{font-size:13px;font-weight:600;color:var(--muted);margin-left:2px}
+  .tile .note{font-size:11px;color:var(--muted)}
+  .tile.t-live .val{color:var(--down)}
+  .tile.t-trk .val{color:var(--bad)}
+  .tile.t-new .val{color:var(--warn)}
+  .tile.t-new.zero .val,.tile.t-trk.zero .val{color:var(--ink)}
+  .tile canvas{position:absolute;inset:auto 0 0 0;width:100%;height:34px;opacity:.55;pointer-events:none}
+
+  /* stage: live map + side column */
+  .stage{display:grid;grid-template-columns:minmax(0,1.7fr) minmax(300px,1fr);gap:16px;margin-bottom:16px}
+  @media(max-width:1100px){.stage{grid-template-columns:1fr}}
+  .side{display:flex;flex-direction:column;gap:16px;min-width:0}
+  .legend{display:flex;gap:12px;flex-wrap:wrap;font-size:11px;color:var(--muted);margin-left:auto}
+  .legend i{display:inline-block;vertical-align:middle;margin-right:4px}
+  .lg-live{width:18px;height:2px;background:var(--down);box-shadow:0 0 6px var(--down)}
+  .lg-dns{width:18px;border-top:2px dotted var(--dim)}
+  .lg-trk{width:0;height:0;border-left:5px solid transparent;border-right:5px solid transparent;border-bottom:9px solid var(--bad)}
+  .mapwrap{overflow-x:auto;padding:6px 4px 10px}
+  #map{display:block;width:100%;min-width:520px}
+  #map text{font-size:12px;fill:var(--ink)}
+  #map text.sub{font-size:10px;fill:var(--muted)}
+  #map .edge{fill:none;stroke-linecap:round;transition:opacity .3s}
+  #map .edge.warm{opacity:.5}
+  #map .edge.cold{opacity:.18}
+  #map .edge.dns{stroke-dasharray:2 5;opacity:.3}
+  #map .edge.hot{opacity:.95;stroke-dasharray:7 9;animation:flow 1s linear infinite;filter:drop-shadow(0 0 3px var(--glow))}
+  @keyframes flow{to{stroke-dashoffset:-16}}
+  #map .node{cursor:pointer}
+  #map .node circle.core,#map .node path.core{stroke:var(--panel);stroke-width:2}
+  #map .ring{fill:none;stroke:var(--down);stroke-width:2;opacity:0}
+  #map .node.hot .ring{animation:ring 1s ease-out infinite}
+  @keyframes ring{0%{r:9;opacity:.9}100%{r:20;opacity:0}}
+  #map.focus .edge:not(.f){opacity:.05}
+  #map.focus .node:not(.f){opacity:.3}
+  .map-empty{padding:60px 20px;text-align:center;color:var(--muted)}
+
+  #chart{display:block;width:100%;height:120px}
+  .feed{list-style:none;margin:0;padding:6px 0;max-height:360px;overflow:auto}
+  .feed li{display:grid;grid-template-columns:60px 14px 1fr;gap:8px;align-items:start;padding:6px 16px;font-size:13px;animation:slidein .4s ease-out}
+  .feed li.old{animation:none}
+  @keyframes slidein{from{opacity:0;transform:translateY(-4px);background:color-mix(in srgb,var(--accent) 12%,transparent)}to{opacity:1;transform:none}}
+  .feed time{font-family:var(--mono);font-size:11px;color:var(--muted);padding-top:2px}
+  .feed .dot{width:9px;height:9px;border-radius:50%;margin-top:5px;background:var(--dim)}
+  .feed .k-new .dot{background:var(--warn);box-shadow:0 0 8px var(--warn)}
+  .feed .k-trk .dot{background:var(--bad);border-radius:1px;transform:rotate(45deg)}
+  .feed .k-spike .dot{background:var(--down);box-shadow:0 0 8px var(--down)}
+  .feed .empty{display:block;color:var(--muted);padding:16px}
+
+  /* device cards */
+  .sect-h{display:flex;align-items:baseline;gap:10px;margin:4px 2px 10px}
+  .sect-h h2{margin:0;font-size:12px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;color:var(--muted)}
+  .sect-h .aside{font-size:11px;color:var(--muted)}
+  .cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,340px),1fr));gap:14px}
+  .dev{padding:14px 16px;display:flex;flex-direction:column;gap:10px;transition:border-color .3s}
+  .dev.live{border-color:color-mix(in srgb,var(--down) 35%,var(--line))}
+  .dev.isnew{border-color:var(--warn);box-shadow:0 0 0 1px color-mix(in srgb,var(--warn) 40%,transparent),var(--shadow)}
+  .dev .top{display:grid;grid-template-columns:44px minmax(0,1fr) auto;gap:12px;align-items:center}
+  .ico{position:relative;width:44px;height:44px;border-radius:12px;display:grid;place-items:center;
+    background:color-mix(in srgb,var(--c,var(--accent)) 16%,transparent);color:var(--c,var(--accent))}
+  .ico svg{width:24px;height:24px}
+  .ico select{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%}
+  .ico .guess{position:absolute;right:-3px;bottom:-3px;font-size:9px;font-weight:800;background:var(--panel2);border:1px solid var(--line);border-radius:6px;padding:0 3px;color:var(--muted)}
+  .dev .name{font-size:16px;font-weight:700;display:flex;align-items:center;gap:6px;min-width:0}
+  .dev .name span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .dev .meta{font-size:11px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .rename{border:0;background:none;color:var(--dim);cursor:pointer;padding:0 2px;font-size:12px}
+  .rename:hover{color:var(--accent)}
+  .rate{text-align:right;font-family:var(--mono);font-size:12px;line-height:1.35;white-space:nowrap}
+  .rate .d{color:var(--down)}.rate .u{color:var(--up)}
+  .rate.idle{color:var(--dim)}
+  .newbadge{font-size:10px;font-weight:800;padding:1px 7px;border-radius:999px;background:color-mix(in srgb,var(--warn) 20%,transparent);color:var(--warn);letter-spacing:.5px}
+  .doing{font-size:13px}
+  .doing .grade{float:right;margin-left:8px}
+  .grade{font-size:11px;font-weight:700;padding:2px 8px;border-radius:999px;white-space:nowrap}
+  .grade.g-ok{background:color-mix(in srgb,var(--ok) 16%,transparent);color:var(--ok)}
+  .grade.g-warn{background:color-mix(in srgb,var(--warn) 18%,transparent);color:var(--warn)}
+  .grade.g-bad{background:color-mix(in srgb,var(--bad) 18%,transparent);color:var(--bad)}
+  .tl{display:flex;gap:2px;height:14px}
+  .tl span{flex:1 1 0;border-radius:2px;background:var(--line);min-width:0}
+  .tl-axis{display:flex;justify-content:space-between;font-size:10px;color:var(--dim);margin-top:-6px}
+  .vol{display:flex;height:5px;border-radius:999px;overflow:hidden;background:var(--line)}
+  .vol i{display:block;height:100%}
+  .vol .d{background:var(--down)}.vol .u{background:var(--up)}
+  .vol-l{display:flex;justify-content:space-between;font-size:11px;color:var(--muted);margin-top:-6px;font-family:var(--mono)}
+  .svc{display:flex;flex-wrap:wrap;gap:6px}
+  .sc{font-size:12px;padding:3px 9px;border-radius:999px;border:1px solid color-mix(in srgb,var(--c) 35%,transparent);
+    background:color-mix(in srgb,var(--c) 12%,transparent);color:color-mix(in srgb,var(--c) 65%,var(--ink));white-space:nowrap}
+  .sc.dnsonly{opacity:.55;border-style:dashed}
+  .sc b{font-weight:700}
+  .trk{display:flex;flex-wrap:wrap;gap:6px;align-items:center;padding-top:8px;border-top:1px dashed var(--line)}
+  .trk .h{font-size:11px;font-weight:700;color:var(--bad);margin-right:2px}
+  .trk.dnsonly .h{color:var(--muted)}
+  .tc{font-size:11px;padding:2px 8px;border-radius:6px;background:color-mix(in srgb,var(--bad) 12%,transparent);color:color-mix(in srgb,var(--bad) 70%,var(--ink))}
+  .tc.dns{background:var(--panel2);color:var(--muted)}
+  .tc em{font-style:normal;opacity:.7}
+  .empty{padding:22px;color:var(--muted);text-align:center}
+
+  /* detailed view */
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px}
+  @media(max-width:900px){.grid2{grid-template-columns:1fr}}
+  .scroll{overflow:auto;max-height:380px}
+  table{width:100%;border-collapse:collapse;font-size:13px}
+  th,td{text-align:left;padding:7px 16px;white-space:nowrap;border-bottom:1px solid var(--line)}
+  th{position:sticky;top:0;background:var(--panel);color:var(--muted);font-weight:700;font-size:11px;text-transform:uppercase;letter-spacing:.4px}
+  td.num{text-align:right;font-family:var(--mono)}
+  tbody tr:hover td{background:var(--panel2)}
+  .host{color:var(--down)}
+  .tx{color:var(--up)}.rx{color:var(--down)}
+  .proto{font-size:11px;padding:1px 7px;border-radius:6px;background:var(--panel2);color:var(--muted);font-family:var(--mono)}
+  .bar{height:5px;background:var(--line);border-radius:999px;overflow:hidden;min-width:70px}
+  .bar>i{display:block;height:100%;background:linear-gradient(90deg,var(--accent),var(--down))}
+  footer{padding:6px 22px 26px;color:var(--muted);font-size:11px;text-align:center}
+
+  @media (prefers-reduced-motion: reduce){
+    *{animation:none!important;transition:none!important}
   }
 </style>
 </head>
 <body>
 <header>
-  <div>
-    <div class="logo">wtfi<b>3</b></div>
-    <div class="tag" data-i18n="tagline"></div>
+  <div class="brand">
+    <span class="beacon" id="beacon" title=""></span>
+    <div>
+      <div class="logo">wtfi<b>3</b></div>
+      <div class="tagline" data-i18n="tagline"></div>
+    </div>
   </div>
-  <div class="stats">
-    <span class="pill"><span data-i18n="iface"></span> <b id="iface">-</b></span>
-    <span class="pill" id="wifipill" hidden><span data-i18n="wifi"></span> <b id="wifi">-</b></span>
-    <span class="pill"><span data-i18n="host"></span> <b id="selfip">-</b></span>
-    <span class="pill"><span data-i18n="total"></span> <b id="total">0</b></span>
-    <span class="pill"><span data-i18n="up"></span> <b id="up">0</b></span>
-    <span class="pill mode alert" id="newalert" hidden></span>
-    <span class="pill mode passive" id="netmode">passive</span>
-    <button id="view" class="btn"></button>
-    <button id="lang" class="btn">日本語</button>
+  <div class="chips">
+    <span class="chip" id="wifichip" hidden><span class="k" data-i18n="wifi"></span> <b id="wifi">-</b></span>
+    <span class="chip"><span class="k" data-i18n="iface"></span> <b id="iface" class="mono">-</b></span>
+    <span class="chip"><span class="k" data-i18n="host"></span> <b id="selfip" class="mono">-</b></span>
+    <span class="chip mode-passive" id="netmode">passive</span>
+    <span class="seg" id="viewseg"><button data-v="simple"></button><button data-v="detailed"></button></span>
+    <span class="seg"><button id="lang"></button></span>
   </div>
 </header>
 <main>
-  <section>
-    <h2><span data-i18n="throughput"></span><span class="count" id="bw">0</span></h2>
-    <canvas id="chart" height="130"></canvas>
-  </section>
+  <div class="hero">
+    <div class="panel story" id="story">&nbsp;</div>
+    <div class="tiles">
+      <div class="panel tile"><span class="lab" data-i18n="t_devices"></span><span class="val" id="t-dev">0</span><span class="note" id="t-dev-n">&nbsp;</span></div>
+      <div class="panel tile t-live"><span class="lab" data-i18n="t_now"></span><span class="val" id="t-now">0</span><span class="note" id="t-now-n">&nbsp;</span><canvas id="spark"></canvas></div>
+      <div class="panel tile t-trk"><span class="lab" data-i18n="t_trackers"></span><span class="val" id="t-trk">0</span><span class="note" id="t-trk-n">&nbsp;</span></div>
+      <div class="panel tile t-new"><span class="lab" data-i18n="t_new"></span><span class="val" id="t-new">0</span><span class="note" id="t-new-n">&nbsp;</span></div>
+    </div>
+  </div>
 
   <div id="simple">
+    <div class="stage">
+      <section class="panel">
+        <div class="ph"><h2 data-i18n="map"></h2>
+          <span class="legend"><span><i class="lg-live"></i><span data-i18n="lg_live"></span></span><span><i class="lg-dns"></i><span data-i18n="lg_dns"></span></span><span><i class="lg-trk"></i><span data-i18n="lg_trk"></span></span></span>
+        </div>
+        <div class="mapwrap"><svg id="map" role="img"></svg><div class="map-empty" id="mapempty" data-i18n="map_empty"></div></div>
+      </section>
+      <div class="side">
+        <section class="panel">
+          <div class="ph"><h2 data-i18n="throughput"></h2><span class="aside mono" id="bw"></span></div>
+          <canvas id="chart"></canvas>
+        </section>
+        <section class="panel">
+          <div class="ph"><h2 data-i18n="feed"></h2><span class="aside" data-i18n="feed_hint"></span></div>
+          <ul class="feed" id="feed"></ul>
+        </section>
+      </div>
+    </div>
+    <div class="sect-h"><h2 data-i18n="devices"></h2><span class="aside" data-i18n="devices_hint"></span></div>
     <div class="cards" id="cards"></div>
   </div>
 
   <div id="detailed" hidden>
     <div class="grid2">
-      <section>
-        <h2><span data-i18n="devices"></span><span class="count" id="ndev">0</span></h2>
+      <section class="panel">
+        <div class="ph"><h2 data-i18n="devices"></h2><span class="aside mono" id="ndev">0</span></div>
         <div class="scroll">
           <table><thead><tr>
             <th data-i18n="th_ip"></th><th data-i18n="th_vendor"></th><th data-i18n="th_mac"></th>
@@ -168,8 +256,8 @@
           </tr></thead><tbody id="devs"></tbody></table>
         </div>
       </section>
-      <section>
-        <h2><span data-i18n="lookups"></span><span class="count" id="ndns">0</span></h2>
+      <section class="panel">
+        <div class="ph"><h2 data-i18n="lookups"></h2><span class="aside mono" id="ndns">0</span></div>
         <div class="scroll">
           <table><thead><tr>
             <th data-i18n="th_client"></th><th data-i18n="th_name"></th>
@@ -178,9 +266,9 @@
         </div>
       </section>
     </div>
-    <section>
-      <h2><span data-i18n="flows"></span><span class="count" id="nflow">0</span></h2>
-      <div class="scroll" style="max-height:420px">
+    <section class="panel">
+      <div class="ph"><h2 data-i18n="flows"></h2><span class="aside mono" id="nflow">0</span></div>
+      <div class="scroll" style="max-height:460px">
         <table><thead><tr>
           <th data-i18n="th_src"></th><th data-i18n="th_dst"></th><th data-i18n="th_proto"></th>
           <th class="num" data-i18n="th_port"></th><th data-i18n="th_sni"></th>
@@ -196,70 +284,121 @@
 const I18N = {
   en: {
     tagline:"who is talking to whom on your WiFi",
-    iface:"iface", host:"host", total:"total", up:"uptime", wifi:"wifi",
-    wifi_hidden:"hidden (needs Location access)", wifi_off:"not associated", wifi_open:"open",
-    new_badge:"NEW", new_one:"1 new device", new_many:"{n} new devices",
-    tracker_one:"phoning home to 1 tracker", tracker_many:"phoning home to {n} trackers",
-    tracker_dns_one:"looked up 1 tracker (DNS only, no traffic seen)", tracker_dns_many:"looked up {n} trackers (DNS only, no traffic seen)",
-    tracker_help:"Third-party analytics, ad, attribution, crash, and IoT-telemetry endpoints this device contacted. Named by operator, from DNS/SNI. Chips marked DNS were only resolved, not confirmed by traffic. TLS content is never decrypted.",
-    throughput:"Throughput", devices:"Devices", lookups:"DNS lookups", flows:"Top flows",
+    iface:"iface", host:"host", wifi:"wifi",
+    wifi_hidden:"hidden (needs Location access)", wifi_off:"not associated", wifi_open:"OPEN network",
+    new_badge:"NEW", lang:"日本語", view_simple:"Simple", view_detailed:"Detailed",
+    t_devices:"Devices", t_now:"Right now", t_trackers:"Trackers", t_new:"New devices",
+    n_dev_live:"{n} active now", n_peak:"peak {v}/s", n_trk:"from {n} devices", n_trk_none:"none confirmed yet",
+    n_new:"joined after start", n_new_none:"all known since start",
+    s_online:"<b>{n}</b> devices on the network", s_new:", <span class=\"hl-new\">{n} new</span>",
+    s_doing:"<b>{name}</b> is <span class=\"hl-live\">{act}</span>",
+    s_and:" and ", s_others:" (+{n} more busy)",
+    s_quiet:"Things are quiet right now.",
+    s_trk:"<span class=\"hl-trk\">{t} tracker companies</span> got data from {m} of them.",
+    s_trk_none:"No tracker traffic confirmed yet.",
+    s_sub:"Total {mb} seen in {up}. {mode}",
+    s_passive:"Passive mode: you mostly see this host plus broadcast traffic.",
+    s_spoof:"MITM mode: relaying {n} devices through this host.",
+    map:"Live map", lg_live:"traffic now", lg_dns:"DNS only", lg_trk:"tracker",
+    map_empty:"Waiting for traffic with a recognizable destination (DNS / TLS SNI)…",
+    throughput:"Throughput", peak:"peak",
+    feed:"What just happened", feed_hint:"newest first",
+    f_start:"Watching {iface}. Devices already here are the baseline.",
+    f_new:"<b>{name}</b> joined the network (looks like: {type})",
+    f_act:"<b>{name}</b> started {act}",
+    f_act_now:"<b>{name}</b> is {act}",
+    f_trk:"<b>{name}</b> sent data to <b>{trk}</b>",
+    f_spike:"Spike: <b>{rate}/s</b>, mostly <b>{name}</b>",
+    f_open:"This WiFi is unencrypted. Anyone nearby can read unencrypted traffic.",
+    f_none:"Nothing yet. Events appear here as devices start doing things.",
+    devices:"Devices", devices_hint:"click the icon to fix the device type, ✎ to rename",
+    unknown_dev:"Unknown device", this_dev:"This computer", router:"Router",
+    quiet:"quiet, no recognizable services yet", idle:"idle", now:"now",
+    rename:"rename", rename_prompt:"Name for this device (leave blank to clear):",
+    guessed:"guessed from vendor and traffic; click to change",
+    g_none:"0 trackers", g_one:"1 tracker", g_many:"{n} trackers",
+    trk_h:"Phones home to", trk_h_dns:"Looked up (no traffic seen)",
+    tracker_help:"Third-party analytics, ad, attribution, crash, and IoT-telemetry endpoints this device contacted, named by operator from DNS/SNI. Faded chips were only resolved by DNS, not confirmed by traffic. TLS content is never decrypted.",
+    dns_only:"DNS only",
+    lookups:"DNS lookups", flows:"Top flows",
     th_ip:"IP", th_vendor:"vendor", th_mac:"MAC", th_up:"up", th_down:"down",
     th_client:"client", th_name:"name", th_type:"type", th_answer:"answer",
     th_src:"source", th_dst:"destination", th_proto:"proto", th_port:"port",
     th_sni:"hostname (SNI)", th_bytes:"bytes", th_pkts:"pkts",
-    peak:"peak", none_dev:"no devices yet", none_flow:"no flows yet",
-    none_dns:"no DNS seen (encrypted DoH/DoT?)",
-    footer:"Refreshed every second. TLS payloads are not decrypted, only metadata (destination, volume, DNS, SNI) is shown.",
-    lang:"日本語",
-    view_simple:"Simple view", view_detailed:"Detailed view",
-    unknown_dev:"Unknown device", this_dev:"This Mac", router:"Router",
-    doing_prefix:"Looks like:", quiet:"quiet, no recognizable services yet", up_short:"up", down_short:"down",
-    dns_only:"looked up only", rename:"rename", rename_prompt:"Name for this device (leave blank to clear):",
-    recent:"recent activity", idle:"idle",
+    none_dev:"no devices yet", none_flow:"no flows yet", none_dns:"no DNS seen (encrypted DoH/DoT?)",
+    footer:"Live over a 1-second stream. TLS payloads are never decrypted: only metadata (destination, volume, DNS, SNI) is shown. Service and tracker names are educated guesses from hostnames.",
+    stale:"stream disconnected, retrying",
+    type:{phone:"Phone",tablet:"Tablet",laptop:"Computer",tv:"TV / streamer",speaker:"Speaker",iot:"Smart plug / IoT",
+      camera:"Camera",console:"Game console",router:"Router",printer:"Printer",unknown:"Unknown"},
     cat:{video:"Video",shopping:"Shopping",email:"Email",social:"Social",music:"Music",
       messaging:"Messaging",gaming:"Gaming",cloud:"Cloud/Sync",dev:"Developer",ai:"AI",
       search:"Search",news:"News",maps:"Maps",finance:"Finance",food:"Food delivery",
       ads:"Ads/Telemetry",adult:"Adult",other:"Other"},
     act:{video:"watching video",shopping:"shopping",email:"checking email",social:"on social media",
-      music:"listening to music",messaging:"messaging",gaming:"gaming",cloud:"syncing with cloud",
-      dev:"developer traffic",ai:"using an AI assistant",search:"searching the web",news:"reading news",
-      maps:"using maps",finance:"banking or payments",food:"ordering food",
-      ads:"ads and telemetry",adult:"adult sites",other:"browsing"}
+      music:"listening to music",messaging:"messaging",gaming:"gaming",cloud:"syncing with the cloud",
+      dev:"doing developer stuff",ai:"using an AI assistant",search:"searching the web",news:"reading news",
+      maps:"using maps",finance:"banking or paying",food:"ordering food",
+      ads:"sending ads and telemetry",adult:"on adult sites",other:"browsing"}
   },
   ja: {
     tagline:"あなたのWiFiで誰が誰と通信しているか",
-    iface:"インターフェース", host:"自分", total:"合計", up:"稼働", wifi:"Wi-Fi",
+    iface:"IF", host:"自分", wifi:"Wi-Fi",
     wifi_hidden:"非開示（位置情報の許可が必要）", wifi_off:"未接続", wifi_open:"暗号化なし",
-    new_badge:"新規", new_one:"新規デバイス 1 台", new_many:"新規デバイス {n} 台",
-    tracker_one:"トラッカー 1 件に通信中", tracker_many:"トラッカー {n} 件に通信中",
-    tracker_dns_one:"トラッカー 1 件を名前解決のみ（通信は未観測）", tracker_dns_many:"トラッカー {n} 件を名前解決のみ（通信は未観測）",
-    tracker_help:"この端末が接続したサードパーティの解析・広告・アトリビューション・クラッシュ・IoT テレメトリのエンドポイント。DNS/SNI から運営者名で表示。DNS と付いたものは名前解決のみで通信は未確認。TLS の中身は復号しません。",
-    throughput:"通信量", devices:"デバイス", lookups:"DNS名前解決", flows:"フロー上位",
+    new_badge:"新規", lang:"English", view_simple:"かんたん", view_detailed:"くわしく",
+    t_devices:"デバイス", t_now:"いまの通信", t_trackers:"トラッカー", t_new:"新規デバイス",
+    n_dev_live:"{n} 台が通信中", n_peak:"ピーク {v}/s", n_trk:"{n} 台から", n_trk_none:"まだ確認なし",
+    n_new:"起動後に参加", n_new_none:"起動時から全部既知",
+    s_online:"ネットワークに <b>{n}</b> 台", s_new:"（うち<span class=\"hl-new\">新規 {n} 台</span>）",
+    s_doing:"<b>{name}</b> は<span class=\"hl-live\">{act}</span>",
+    s_and:"、", s_others:"（ほか {n} 台も通信中）",
+    s_quiet:"いまは静かです。",
+    s_trk:"そのうち {m} 台から<span class=\"hl-trk\">トラッカー {t} 社</span>にデータが送られています。",
+    s_trk_none:"トラッカーへの通信はまだ確認されていません。",
+    s_sub:"{up} で合計 {mb}。{mode}",
+    s_passive:"パッシブモード: 見えるのは主にこの端末とブロードキャストだけです。",
+    s_spoof:"MITM モード: {n} 台の通信をこの端末経由で中継中。",
+    map:"ライブマップ", lg_live:"通信中", lg_dns:"名前解決のみ", lg_trk:"トラッカー",
+    map_empty:"宛先が分かる通信（DNS / TLS SNI）を待っています…",
+    throughput:"通信量", peak:"ピーク",
+    feed:"いま起きたこと", feed_hint:"新しい順",
+    f_start:"{iface} の監視を開始。いまいる端末を基準にします。",
+    f_new:"<b>{name}</b> がネットワークに参加（たぶん{type}）",
+    f_act:"<b>{name}</b> が新たに{act}",
+    f_act_now:"<b>{name}</b> は{act}",
+    f_trk:"<b>{name}</b> が <b>{trk}</b> にデータを送信",
+    f_spike:"急増: <b>{rate}/s</b>、主に <b>{name}</b>",
+    f_open:"この Wi-Fi は暗号化されていません。近くの誰でも暗号化されていない通信を読めます。",
+    f_none:"まだ何もありません。端末が動き出すとここに出ます。",
+    devices:"デバイス", devices_hint:"アイコンをクリックで種類を修正、✎ で名前を付けられます",
+    unknown_dev:"不明なデバイス", this_dev:"このコンピュータ", router:"ルーター",
+    quiet:"目立った通信なし", idle:"待機", now:"いま",
+    rename:"名前", rename_prompt:"この端末の名前（空欄で解除）:",
+    guessed:"メーカーと通信内容からの推測。クリックで変更",
+    g_none:"トラッカー 0", g_one:"トラッカー 1", g_many:"トラッカー {n}",
+    trk_h:"送信先トラッカー", trk_h_dns:"名前解決のみ（通信は未観測）",
+    tracker_help:"この端末が接続したサードパーティの解析・広告・アトリビューション・クラッシュ・IoT テレメトリのエンドポイント。DNS/SNI から運営者名で表示。薄いものは名前解決のみで通信は未確認。TLS の中身は復号しません。",
+    dns_only:"名前解決のみ",
+    lookups:"DNS名前解決", flows:"フロー上位",
     th_ip:"IP", th_vendor:"メーカー", th_mac:"MAC", th_up:"上り", th_down:"下り",
     th_client:"端末", th_name:"名前", th_type:"種別", th_answer:"応答",
     th_src:"送信元", th_dst:"宛先", th_proto:"プロトコル", th_port:"ポート",
     th_sni:"ホスト名 (SNI)", th_bytes:"バイト", th_pkts:"パケット",
-    peak:"ピーク", none_dev:"デバイス未検出", none_flow:"フロー未検出",
-    none_dns:"DNSなし（DoH/DoTで暗号化？）",
-    footer:"1秒ごとに更新。TLSの中身は復号しません。表示はメタデータ（宛先・通信量・DNS・SNI）のみ。",
-    lang:"English",
-    view_simple:"かんたん表示", view_detailed:"くわしい表示",
-    unknown_dev:"不明なデバイス", this_dev:"このMac", router:"ルーター",
-    doing_prefix:"たぶん:", quiet:"目立った通信なし", up_short:"上り", down_short:"下り",
-    dns_only:"名前解決のみ", rename:"名前", rename_prompt:"この端末の名前（空欄で解除）:",
-    recent:"最近の動き", idle:"待機",
+    none_dev:"デバイス未検出", none_flow:"フロー未検出", none_dns:"DNSなし（DoH/DoTで暗号化？）",
+    footer:"1 秒ごとのストリームで更新。TLS の中身は復号しません。表示はメタデータ（宛先・通信量・DNS・SNI）のみ。サービス名とトラッカー名はホスト名からの推測です。",
+    stale:"ストリーム切断、再接続中",
+    type:{phone:"スマホ",tablet:"タブレット",laptop:"パソコン",tv:"テレビ / STB",speaker:"スピーカー",iot:"スマートプラグ / IoT",
+      camera:"カメラ",console:"ゲーム機",router:"ルーター",printer:"プリンター",unknown:"不明"},
     cat:{video:"動画",shopping:"買い物",email:"メール",social:"SNS",music:"音楽",
       messaging:"メッセージ",gaming:"ゲーム",cloud:"クラウド同期",dev:"開発",ai:"AI",
       search:"検索",news:"ニュース",maps:"地図",finance:"金融",food:"フードデリバリー",
       ads:"広告・計測",adult:"アダルト",other:"その他"},
     act:{video:"動画を見ている",shopping:"買い物している",email:"メールを見ている",social:"SNSを見ている",
-      music:"音楽を聴いている",messaging:"メッセージのやり取り",gaming:"ゲームをしている",cloud:"クラウド同期",
-      dev:"開発関連の通信",ai:"AIを使っている",search:"検索している",news:"ニュースを読んでいる",
-      maps:"地図を見ている",finance:"決済・金融",food:"フードデリバリー",
-      ads:"広告・計測通信",adult:"アダルトサイト",other:"閲覧している"}
+      music:"音楽を聴いている",messaging:"メッセージ中",gaming:"ゲーム中",cloud:"クラウド同期中",
+      dev:"開発作業中",ai:"AIを使っている",search:"検索している",news:"ニュースを読んでいる",
+      maps:"地図を見ている",finance:"決済・金融",food:"フードデリバリーを注文中",
+      ads:"広告・計測を送信中",adult:"アダルトサイトを閲覧中",other:"閲覧中"}
   }
 };
-
 // ---- service classification -------------------------------------------------
 // ordered rules: first match wins. [regex, service, category]
 const RULES = [
@@ -382,246 +521,620 @@ function trackerOf(host){
 const CAT_ORDER = ["video","shopping","social","music","gaming","messaging","email","ai","search",
   "news","maps","finance","food","cloud","dev","adult","ads","other"];
 const NOISE = new Set(["ads","other"]);
-const CATCOLOR = {video:"#e5567f",shopping:"#d98420",email:"#5a7bd8",social:"#8a5cd8",music:"#2fa876",
-  messaging:"#2f95c4",gaming:"#7c5cff",cloud:"#7b8aa0",dev:"#55707f",ai:"#0f9b96",search:"#3f7fce",
-  news:"#c0664f",maps:"#3aa86b",finance:"#b8912a",food:"#e07a3f",ads:"#9a8a92",adult:"#c94f6d",other:"#b0a8bd"};
+// Mid-saturation hues that read on both the dark and the light background.
+const CATCOLOR = {video:"#ff5c8a",shopping:"#f59e0b",email:"#6c8cff",social:"#a77bff",music:"#34d399",
+  messaging:"#38bdf8",gaming:"#8b5cf6",cloud:"#94a3b8",dev:"#64a6b8",ai:"#2dd4bf",search:"#60a5fa",
+  news:"#f97362",maps:"#4ade80",finance:"#eab308",food:"#fb923c",ads:"#a8a29e",adult:"#f472b6",other:"#8b95a8"};
 
-// ---- persisted nicknames + client-side activity history ---------------------
-let NICK = (()=>{ try{return JSON.parse(localStorage.getItem("wtfi3_nick")||"{}")}catch(e){return {}} })();
-const HIST = {};          // ip -> [{t, cat|null}]  (client-side, session only)
-const PREV = {};          // ip -> {cat: cumulativeBytes} at previous tick
+// ---- device types -----------------------------------------------------------
+// Coarse types in the spirit of Fing's device groups. Icons are hand-drawn
+// strokes (no third-party icon set or brand marks).
+const TYPES = ["phone","tablet","laptop","tv","speaker","iot","camera","console","router","printer","unknown"];
+const TYPECOLOR = {phone:"#38d6ff",tablet:"#5ac8fa",laptop:"#9d8cff",tv:"#ff7eb6",speaker:"#4ade80",iot:"#ffb547",
+  camera:"#ff6b6b",console:"#c084fc",router:"#94a3b8",printer:"#94a3b8",unknown:"#8190ad"};
+const ICON = {
+  phone:'<rect x="7" y="2.5" width="10" height="19" rx="2.5"/><path d="M11 18.5h2"/>',
+  tablet:'<rect x="4.5" y="3" width="15" height="18" rx="2"/><path d="M11 18h2"/>',
+  laptop:'<rect x="4" y="5" width="16" height="11" rx="1.5"/><path d="M2 19.5h20"/>',
+  tv:'<rect x="2.5" y="4.5" width="19" height="12.5" rx="1.5"/><path d="M8 21h8M12 17v4"/>',
+  speaker:'<rect x="6" y="2.5" width="12" height="19" rx="3"/><circle cx="12" cy="14.5" r="3.2"/><circle cx="12" cy="7" r="1"/>',
+  iot:'<path d="M9 2.5v4.5M15 2.5v4.5"/><rect x="6" y="7" width="12" height="7" rx="2"/><path d="M12 14v3a3 3 0 0 1-3 3H8"/>',
+  camera:'<circle cx="12" cy="10" r="6.5"/><circle cx="12" cy="10" r="2.3"/><path d="M8 21.5h8M12 16.5v5"/>',
+  console:'<rect x="2" y="7" width="20" height="10.5" rx="5"/><path d="M7 10.3v4.4M4.8 12.5h4.4"/><circle cx="15.5" cy="11.3" r=".9"/><circle cx="18" cy="13.6" r=".9"/>',
+  router:'<rect x="3" y="13" width="18" height="7" rx="2"/><path d="M7 13 5.5 6M17 13l1.5-7M7.5 16.5h.01M11 16.5h.01"/>',
+  printer:'<path d="M7 9V3h10v6"/><rect x="3" y="9" width="18" height="8" rx="2"/><rect x="7" y="14" width="10" height="7"/>',
+  unknown:'<circle cx="12" cy="12" r="9"/><path d="M9.6 9.4a2.5 2.5 0 1 1 3.4 2.4c-.7.3-1 .8-1 1.5v.6M12 17.2h.01"/>',
+};
+const svgIcon = t => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICON[t]||ICON.unknown}</svg>`;
+const isLocalMAC = mac => /^[0-9a-f]{2}:/i.test(mac||"") && (parseInt(mac.slice(0,2),16) & 2) !== 0;
+
+// guessType infers a coarse device type from the OUI vendor and what the device
+// talks to. It is a guess; the user can override it from the card.
+function guessType(d, selfIP, gw){
+  if(d.ip===gw) return "router";
+  if(d.ip===selfIP) return "laptop";
+  const v=(d.vendor||"").toLowerCase();
+  const has=c=>d.cats[c] && d.cats[c].bytes>0;
+  const iot=Object.values(d.trackers).some(t=>t.kind==="iot");
+  if(/espressif|tuya|shelly|sonoff|itead|signify|philips light|lifx|broadlink|meross|switchbot|belkin|ecobee|nest labs/.test(v)) return "iot";
+  if(/hikvision|dahua|wyze|reolink|arlo|eufy|ezviz|amcrest|axis comm/.test(v)) return "camera";
+  if(/nintendo|sony interactive/.test(v)) return "console";
+  if(/roku|vizio|hisense|lg electronics|funai/.test(v)) return "tv";
+  if(/sonos|bose|harman|denon/.test(v)) return "speaker";
+  if(/amazon/.test(v)) return has("video")?"tv":"speaker";
+  if(/hewlett|hp inc|canon|seiko epson|brother|xerox|lexmark|ricoh/.test(v)) return "printer";
+  if(/tp-link/.test(v)) return iot?"iot":"router";
+  if(/ubiquiti|netgear|buffalo|nec platforms|cisco|juniper|aruba|mikrotik|eero|linksys/.test(v)) return "router";
+  if(Object.keys(d.trackers).some(l=>/\bTV\b/.test(l))) return "tv";
+  if(/samsung/.test(v)) return has("video")&&!has("social")?"tv":"phone";
+  if(iot) return "iot";
+  if(v.startsWith("randomized")||isLocalMAC(d.mac)) return "phone";
+  if(/apple/.test(v)) return "laptop";
+  if(/google/.test(v)) return has("video")?"tv":"phone";
+  if(/intel|dell|lenovo|asustek|acer|micro-star|gigabyte|microsoft|hon hai|liteon|azurewave|raspberry/.test(v)) return "laptop";
+  if(/xiaomi|oppo|oneplus|huawei|motorola|vivo|fcnt/.test(v)) return "phone";
+  if(has("gaming")) return "console";
+  return "unknown";
+}
+
+// ---- small helpers ------------------------------------------------------------
+const load = (k,def) => { try{ const v=localStorage.getItem(k); return v===null?def:JSON.parse(v); }catch(e){ return def; } };
+const save = (k,v) => { try{ localStorage.setItem(k, JSON.stringify(v)); }catch(e){} };
+const el = id => document.getElementById(id);
+const fmtB = n => n>=1e9?(n/1e9).toFixed(2)+"G":n>=1e6?(n/1e6).toFixed(1)+"M":n>=1e3?(n/1e3).toFixed(1)+"k":Math.round(n)+"";
+const esc = s => String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const fmt = (tpl,p) => tpl.replace(/\{(\w+)\}/g,(_,k)=>p[k]??"");
+const fmtUp = s => s<60?Math.round(s)+"s":s<3600?Math.floor(s/60)+"m "+Math.floor(s%60)+"s":Math.floor(s/3600)+"h "+Math.floor(s%3600/60)+"m";
+const css = name => getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+const trunc = (s,n) => s.length>n ? s.slice(0,n-1)+"…" : s;
+
+// ---- persisted + session state --------------------------------------------------
+// localStorage keys are unchanged from earlier versions, so nicknames survive.
+let NICK = load("wtfi3_nick", {});
+let TYPEOVR = load("wtfi3_type", {});
+let lang = (()=>{ try{ return localStorage.getItem("wtfi3_lang")||"en"; }catch(e){ return "en"; } })();
+let view = (()=>{ try{ return localStorage.getItem("wtfi3_view")||"simple"; }catch(e){ return "simple"; } })();
+const T = () => I18N[lang];
+
+const HIST = {};      // ip -> [{t, cat|null}] dominant category per tick, last 60
+const PREVCAT = {};   // ip -> {cat: cumulative bytes} at previous tick
+const DPREV = {};     // ip -> {tx, rx, t}
+const EDGEPREV = {};  // edge key -> cumulative bytes at previous tick
+const EDGEHOT = {};   // edge key -> ms timestamp of the last tick it moved bytes
+const ACTLAST = {};   // ip|cat -> ms timestamp the category last moved bytes
+const SEEN = {dev:{}, trk:{}};
+const FEED = [];      // {id, t, kind, key, p}
+let feedSeq = 0, feedShown = 0, tickN = 0, lastSpike = 0, openWarned = false;
+let LAST = null, MODEL = null, HOLD = false, focusKey = null, lastMsg = 0, ORDER = [];
 const HIST_MAX = 60;
 
-let lang = (()=>{ try{return localStorage.getItem("wtfi3_lang")||"en"}catch(e){return "en"} })();
-let view = (()=>{ try{return localStorage.getItem("wtfi3_view")||"simple"}catch(e){return "simple"} })();
-const T = () => I18N[lang];
-function el(id){return document.getElementById(id)}
-const fmtB = n => n>=1e9?(n/1e9).toFixed(2)+"G":n>=1e6?(n/1e6).toFixed(2)+"M":n>=1e3?(n/1e3).toFixed(1)+"k":Math.round(n)+"";
-const esc = s => (s||"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+function storeSet(obj, key, val, name){ if(val) obj[key]=val; else delete obj[key]; save(name, obj); }
+
+// ---- model -------------------------------------------------------------------------
+// buildModel folds a snapshot into per-device services, trackers, and
+// device->destination edges for the live map.
+function buildModel(s){
+  const selfIP=s.self_ip, gw=s.gateway, now=Date.now();
+  const devs={}, nodes={}, edges={};
+  (s.devices||[]).forEach(d=>{
+    devs[d.ip]={ip:d.ip, mac:d.mac||"", vendor:d.vendor||"", tx:d.tx_bytes||0, rx:d.rx_bytes||0, isnew:!!d.new,
+      services:{}, cats:{}, trackers:{}};
+  });
+  const add=(ip, host, bytes)=>{
+    const d=devs[ip];
+    if(!d||!host) return; // only attribute to known LAN devices
+    bytes=bytes||0;
+    const {service,cat}=classify(host), sk=cat+"|"+service;
+    const tr=trackerOf(host);
+    // A tracker host is listed once, under trackers, not again as a service chip.
+    if(tr){ const t=d.trackers[tr.label]||(d.trackers[tr.label]={kind:tr.kind,bytes:0}); t.bytes+=bytes; }
+    else {
+      const sv=d.services[sk]||(d.services[sk]={service,cat,bytes:0});
+      sv.bytes+=bytes;
+    }
+    const c=d.cats[cat]||(d.cats[cat]={bytes:0});
+    c.bytes+=bytes;
+    // A tracker host becomes a tracker node on the map; everything else a service node.
+    const nk = tr ? "T:"+tr.label : "S:"+sk;
+    const n=nodes[nk]||(nodes[nk]={key:nk, label:tr?tr.label:service, cat:tr?"tracker":cat, trk:!!tr, cum:0});
+    n.cum+=bytes;
+    const ek=ip+"|"+nk;
+    const e=edges[ek]||(edges[ek]={key:ek, ip, node:nk, cum:0});
+    e.cum+=bytes;
+  };
+  (s.flows||[]).forEach(f=>{ if(f.sni) add(f.src, f.sni, f.bytes); });
+  (s.dns||[]).forEach(e=>add(e.client, e.name, 0));
+
+  // Edge liveness: a tick in which an edge's cumulative bytes grew marks it hot.
+  Object.values(edges).forEach(e=>{
+    const prev=EDGEPREV[e.key];
+    if(prev!==undefined && e.cum>prev) EDGEHOT[e.key]=now;
+    EDGEPREV[e.key]=e.cum;
+    e.hotAge = EDGEHOT[e.key] ? now-EDGEHOT[e.key] : Infinity;
+  });
+
+  const list=Object.values(devs).map(d=>{
+    const nickKey=(d.mac && /[0-9a-f]{2}:/i.test(d.mac)) ? d.mac : d.ip;
+    const base = d.ip===selfIP ? T().this_dev : d.ip===gw ? T().router
+      : (d.vendor && !d.vendor.startsWith("randomized") && !/^[0-9a-f:]+$/i.test(d.vendor) ? d.vendor : T().unknown_dev);
+    d.nickKey=nickKey;
+    d.name=NICK[nickKey]||base;
+    d.type=TYPEOVR[nickKey]||guessType(d, selfIP, gw);
+    d.guessed=!TYPEOVR[nickKey];
+    // live rate
+    const p=DPREV[d.ip], dt=p?Math.max(.5,(now-p.t)/1000):1;
+    d.rateRx = p ? Math.max(0,(d.rx-p.rx)/dt) : 0;
+    d.rateTx = p ? Math.max(0,(d.tx-p.tx)/dt) : 0;
+    DPREV[d.ip]={tx:d.tx, rx:d.rx, t:now};
+    d.confirmed=Object.keys(d.trackers).filter(l=>d.trackers[l].bytes>0);
+    return d;
+  });
+  return {list, byIP:devs, nodes, edges, selfIP, gw};
+}
+
+// updateHistory records the dominant meaningful category per device for this
+// tick (by byte delta), feeding the timeline, the story line, and the feed.
+function updateHistory(m){
+  const t=Date.now();
+  m.list.forEach(d=>{
+    const prev=PREVCAT[d.ip], cur={};
+    let best=null, bestDelta=0;
+    d.moving=[];
+    Object.keys(d.cats).forEach(c=>{
+      cur[c]=d.cats[c].bytes;
+      if(!prev) return;
+      const delta=cur[c]-(prev[c]||0);
+      if(delta>0 && !NOISE.has(c)){
+        d.moving.push(c);
+        if(delta>bestDelta){ bestDelta=delta; best=c; }
+      }
+    });
+    PREVCAT[d.ip]=cur;
+    const h=HIST[d.ip]||(HIST[d.ip]=[]);
+    h.push({t, cat:best});
+    if(h.length>HIST_MAX) h.splice(0,h.length-HIST_MAX);
+    // the activity the device has been doing most over the last ~10 seconds
+    const tally={};
+    h.slice(-10).forEach(x=>{ if(x.cat) tally[x.cat]=(tally[x.cat]||0)+1; });
+    d.recent=Object.keys(tally).sort((a,b)=>tally[b]-tally[a])[0]||null;
+  });
+}
+
+// ---- activity feed ------------------------------------------------------------------
+function push(kind, key, p, chart){
+  FEED.unshift({id:++feedSeq, t:Date.now(), kind, key, p:p||{}, chart:!!chart});
+  if(FEED.length>80) FEED.length=80;
+}
+function detectEvents(m, s){
+  const now=Date.now();
+  if(tickN===1){
+    push("info","f_start",{iface:s.iface});
+    m.list.forEach(d=>{
+      SEEN.dev[d.ip]=1;
+      d.confirmed.forEach(l=>SEEN.trk[d.ip+"|"+l]=1);
+    });
+  } else {
+    m.list.forEach(d=>{
+      if(!SEEN.dev[d.ip]){
+        SEEN.dev[d.ip]=1;
+        // The aggregator only flags arrivals after its startup baseline.
+        if(d.isnew) push("new","f_new",{ip:d.ip}, true);
+      }
+      d.moving.forEach(c=>{
+        const k=d.ip+"|"+c, last=ACTLAST[k];
+        // Before any history exists the first sighting is "is doing", not "started".
+        if(!last) push("act", tickN<=3?"f_act_now":"f_act", {ip:d.ip, cat:c});
+        else if(now-last>45000) push("act","f_act",{ip:d.ip, cat:c});
+        ACTLAST[k]=now;
+      });
+      d.confirmed.forEach(l=>{
+        const k=d.ip+"|"+l;
+        if(!SEEN.trk[k]){ SEEN.trk[k]=1; push("trk","f_trk",{ip:d.ip, trk:l}, true); }
+      });
+    });
+    const ser=s.series||[];
+    if(ser.length>10){
+      const cur=ser[ser.length-1], sorted=[...ser.slice(-60)].sort((a,b)=>a-b);
+      const med=sorted[Math.floor(sorted.length/2)];
+      if(cur>Math.max(4*med, 300e3) && now-lastSpike>30000){
+        lastSpike=now;
+        const top=[...m.list].sort((a,b)=>(b.rateRx+b.rateTx)-(a.rateRx+a.rateTx))[0];
+        if(top) push("spike","f_spike",{ip:top.ip, rate:fmtB(cur)+"B"}, true);
+      }
+    }
+  }
+  const w=s.wifi;
+  if(w && w.connected && w.security==="NONE" && !openWarned){ openWarned=true; push("trk","f_open",{}); }
+}
+function nameOf(ip){ const d=MODEL&&MODEL.byIP[ip]; return d ? d.name : ip; }
+function feedText(e){
+  const p=e.p, t=T();
+  switch(e.key){
+    case "f_start": return fmt(t.f_start,{iface:esc(p.iface)});
+    case "f_new": { const d=MODEL&&MODEL.byIP[p.ip]; return fmt(t.f_new,{name:esc(nameOf(p.ip)), type:esc(t.type[d?d.type:"unknown"])}); }
+    case "f_act_now": return fmt(t.f_act_now,{name:esc(nameOf(p.ip)), act:esc(t.act[p.cat])});
+    case "f_act": return fmt(t.f_act,{name:esc(nameOf(p.ip)), act:esc(t.act[p.cat])});
+    case "f_trk": return fmt(t.f_trk,{name:esc(nameOf(p.ip)), trk:esc(p.trk)});
+    case "f_spike": return fmt(t.f_spike,{name:esc(nameOf(p.ip)), rate:esc(p.rate)});
+    default: return esc(t[e.key]||e.key);
+  }
+}
+function renderFeed(){
+  const ul=el("feed");
+  if(!FEED.length){ ul.innerHTML=`<li><span class="empty">${T().f_none}</span></li>`; return; }
+  ul.innerHTML=FEED.slice(0,40).map(e=>{
+    const time=new Date(e.t).toLocaleTimeString([], {hour:"2-digit",minute:"2-digit",second:"2-digit"});
+    const dot = e.p.cat ? ` style="background:${CATCOLOR[e.p.cat]}"` : "";
+    return `<li class="k-${e.kind}${e.id<=feedShown?" old":""}"><time>${time}</time><span class="dot"${dot}></span><span>${feedText(e)}</span></li>`;
+  }).join("");
+  feedShown=feedSeq;
+}
+
+// ---- hero ---------------------------------------------------------------------------
+function renderHero(m, s){
+  const t=T(), list=m.list;
+  const nnew=list.filter(d=>d.isnew).length;
+  const busy=list.filter(d=>d.recent).sort((a,b)=>(b.rateRx+b.rateTx)-(a.rateRx+a.rateTx));
+  let html=fmt(t.s_online,{n:list.length})+(nnew?fmt(t.s_new,{n:nnew}):"")+(lang==="ja"?"。":". ");
+  if(busy.length){
+    html+=busy.slice(0,2).map(d=>fmt(t.s_doing,{name:esc(d.name), act:esc(t.act[d.recent])})).join(t.s_and);
+    if(busy.length>2) html+=fmt(t.s_others,{n:busy.length-2});
+    html+=lang==="ja"?"。":". ";
+  } else html+=t.s_quiet+" ";
+  const trk=new Set(), withTrk=list.filter(d=>d.confirmed.length);
+  withTrk.forEach(d=>d.confirmed.forEach(l=>trk.add(l)));
+  html+= trk.size ? fmt(t.s_trk,{t:trk.size, m:withTrk.length}) : t.s_trk_none;
+  const mode = s.spoof ? fmt(t.s_spoof,{n:(s.spoof_list||[]).length}) : t.s_passive;
+  html+=`<span class="sub">${esc(fmt(t.s_sub,{mb:(s.total_mb||0).toFixed(1)+" MB", up:fmtUp(s.uptime_sec||0), mode}))}</span>`;
+  el("story").innerHTML=html;
+
+  const live=list.filter(d=>d.rateRx+d.rateTx>0).length;
+  el("t-dev").textContent=list.length;
+  el("t-dev-n").textContent=fmt(t.n_dev_live,{n:live});
+  const ser=s.series||[], cur=ser.length?ser[ser.length-1]:0, peak=Math.max(0,...ser);
+  el("t-now").innerHTML=esc(fmtB(cur))+"<small>B/s</small>";
+  el("t-now-n").textContent=fmt(t.n_peak,{v:fmtB(peak)+"B"});
+  el("t-trk").textContent=trk.size;
+  el("t-trk").parentElement.classList.toggle("zero", !trk.size);
+  el("t-trk-n").textContent= trk.size ? fmt(t.n_trk,{n:withTrk.length}) : t.n_trk_none;
+  el("t-new").textContent=nnew;
+  el("t-new").parentElement.classList.toggle("zero", !nnew);
+  el("t-new-n").textContent= nnew ? t.n_new : t.n_new_none;
+  drawSpark(ser);
+}
+
+// ---- charts -------------------------------------------------------------------------
+function prepCanvas(cv, h){
+  const w=cv.clientWidth||300, dpr=devicePixelRatio||1;
+  if(cv.width!==Math.round(w*dpr) || cv.height!==Math.round(h*dpr)){ cv.width=Math.round(w*dpr); cv.height=Math.round(h*dpr); }
+  const ctx=cv.getContext("2d");
+  ctx.setTransform(dpr,0,0,dpr,0,0); ctx.clearRect(0,0,w,h);
+  return {ctx,w};
+}
+function area(ctx, series, w, h, pad, color, alpha){
+  const n=120, step=w/(n-1), off=n-series.length, max=Math.max(1,...series);
+  const pts=series.map((v,i)=>[(off+i)*step, h-pad-(v/max)*(h-pad*2)]);
+  if(!pts.length) return {step,max};
+  ctx.beginPath(); pts.forEach(([x,y],i)=>i?ctx.lineTo(x,y):ctx.moveTo(x,y));
+  ctx.lineTo(pts[pts.length-1][0],h); ctx.lineTo(pts[0][0],h); ctx.closePath();
+  const g=ctx.createLinearGradient(0,0,0,h);
+  g.addColorStop(0, color+alpha); g.addColorStop(1, color+"00");
+  ctx.fillStyle=g; ctx.fill();
+  ctx.beginPath(); pts.forEach(([x,y],i)=>i?ctx.lineTo(x,y):ctx.moveTo(x,y));
+  ctx.strokeStyle=color; ctx.lineWidth=2; ctx.lineJoin="round"; ctx.stroke();
+  const [lx,ly]=pts[pts.length-1];
+  ctx.beginPath(); ctx.arc(lx,ly,3.5,0,Math.PI*2); ctx.fillStyle=color; ctx.fill();
+  return {step,max};
+}
+const hex = c => /^#[0-9a-f]{6}$/i.test(c) ? c : "#38d6ff";
+function drawSpark(series){
+  const cv=el("spark"), {ctx,w}=prepCanvas(cv,34);
+  area(ctx, series, w, 34, 3, hex(css("--down")), "88");
+}
+// drawChart is the 2-minute throughput graph with feed events pinned on it
+// (GlassWire-style markers), so a spike and its cause sit side by side.
+function drawChart(series){
+  const cv=el("chart"), h=120, {ctx,w}=prepCanvas(cv,h);
+  ctx.strokeStyle=css("--line"); ctx.lineWidth=1;
+  for(let i=1;i<4;i++){ const y=Math.round(h*i/4)+.5; ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(w,y); ctx.stroke(); }
+  const max=Math.max(0,...series), cur=series.length?series[series.length-1]:0;
+  el("bw").textContent=series.length ? fmtB(cur)+"B/s · "+T().peak+" "+fmtB(max)+"B/s" : "";
+  const {step}=area(ctx, series, w, h, 8, hex(css("--down")), "55");
+  const now=Date.now(), colors={new:css("--warn"), trk:css("--bad"), spike:css("--down")};
+  FEED.filter(e=>e.chart && now-e.t<120000).forEach(e=>{
+    const x=w-((now-e.t)/1000)*step;
+    ctx.strokeStyle=colors[e.kind]||css("--muted"); ctx.globalAlpha=.5; ctx.setLineDash([2,3]);
+    ctx.beginPath(); ctx.moveTo(x,8); ctx.lineTo(x,h); ctx.stroke(); ctx.setLineDash([]); ctx.globalAlpha=1;
+    ctx.beginPath(); ctx.arc(x,7,4,0,Math.PI*2); ctx.fillStyle=colors[e.kind]||css("--muted"); ctx.fill();
+  });
+}
+
+// ---- live map -------------------------------------------------------------------------
+// A bipartite device -> destination graph (ntopng's sankey meets Little Snitch's
+// flashing lines): edge width is cumulative bytes, and an edge that moved bytes
+// in the last tick animates. Re-rendered each tick; the dash animation phase is
+// pinned to wall-clock time so it does not visibly restart.
+function renderMap(m){
+  const svg=el("map");
+  const all=Object.values(m.edges);
+  const devCum={};
+  all.forEach(e=>devCum[e.ip]=(devCum[e.ip]||0)+e.cum+1);
+  const devs=m.list.filter(d=>devCum[d.ip]).sort((a,b)=>(b.tx+b.rx)-(a.tx+a.rx)).slice(0,12);
+  const devSet=new Set(devs.map(d=>d.ip));
+  const edges=all.filter(e=>devSet.has(e.ip));
+  const nodeCum={};
+  edges.forEach(e=>nodeCum[e.node]=(nodeCum[e.node]||0)+e.cum+1);
+  const pick=(trk,n)=>Object.values(m.nodes).filter(x=>x.trk===trk && nodeCum[x.key])
+    .sort((a,b)=>nodeCum[b.key]-nodeCum[a.key]).slice(0,n)
+    .sort((a,b)=>(CAT_ORDER.indexOf(a.cat)-CAT_ORDER.indexOf(b.cat)) || a.label.localeCompare(b.label));
+  const svcs=pick(false,12), trks=pick(true,8);
+  el("mapempty").hidden = !!devs.length;
+  svg.style.display = devs.length ? "" : "none";
+  if(!devs.length) return;
+
+  const W=Math.max(520, svg.parentElement.clientWidth-8), row=34;
+  const hL=devs.length*row, hR=svcs.length*row+(trks.length?(svcs.length?16:0)+trks.length*row:0);
+  const H=Math.max(hL,hR)+20;
+  const side=Math.max(170, Math.min(220, W*.3)), xL=side, xR=W-side;
+  const maxChars=Math.floor((side-24)/7.2);
+  const pos={};
+  devs.forEach((d,i)=>pos[d.ip]=(H-hL)/2+row*i+row/2);
+  let y=(H-hR)/2+row/2;
+  svcs.forEach(n=>{ pos[n.key]=y; y+=row; });
+  if(svcs.length && trks.length) y+=16;
+  trks.forEach(n=>{ pos[n.key]=y; y+=row; });
+
+  const maxCum=Math.max(1,...edges.map(e=>e.cum));
+  const phase=-(performance.now()%1000)/1000;
+  const edgeSVG=edges.filter(e=>pos[e.node]!==undefined).map(e=>{
+    const y1=pos[e.ip], y2=pos[e.node], mx=(xL+xR)/2;
+    const n=m.nodes[e.node];
+    const color = n.trk ? css("--bad") : CATCOLOR[n.cat];
+    const wdt = e.cum>0 ? 1.2+6*Math.log1p(e.cum)/Math.log1p(maxCum) : 1.2;
+    const cls = e.cum===0 ? "dns" : e.hotAge<1600 ? "hot" : e.hotAge<15000 ? "warm" : "cold";
+    return `<path class="edge ${cls}" data-a="${esc(e.ip)}" data-b="${esc(e.node)}" d="M${xL+10},${y1} C${mx},${y1} ${mx},${y2} ${xR-9},${y2}" stroke="${color}" stroke-width="${wdt.toFixed(1)}"${cls==="hot"?` style="animation-delay:${phase}s"`:""}/>`;
+  }).join("");
+  const devSVG=devs.map(d=>{
+    const y=pos[d.ip], hot=d.rateRx+d.rateTx>0;
+    const sub = hot ? `↓${fmtB(d.rateRx)} ↑${fmtB(d.rateTx)}` : T().type[d.type];
+    return `<g class="node${hot?" hot":""}" data-k="${esc(d.ip)}" data-dev="1">
+      <circle class="ring" cx="${xL}" cy="${y}" r="9" style="stroke:${TYPECOLOR[d.type]};animation-delay:${phase}s"/>
+      <circle class="core" cx="${xL}" cy="${y}" r="8" fill="${TYPECOLOR[d.type]}"/>
+      <text x="${xL-16}" y="${y-1}" text-anchor="end">${esc(trunc(d.name,maxChars))}</text>
+      <text class="sub mono" x="${xL-16}" y="${y+12}" text-anchor="end">${esc(sub)}</text></g>`;
+  }).join("");
+  const nodeSVG=[...svcs,...trks].map(n=>{
+    const y=pos[n.key];
+    const shape = n.trk
+      ? `<path class="core" d="M${xR},${y-7} L${xR+7},${y+5} L${xR-7},${y+5} Z" fill="${css("--bad")}"/>`
+      : `<circle class="core" cx="${xR}" cy="${y}" r="6" fill="${CATCOLOR[n.cat]}"/>`;
+    const sub = n.trk ? T().lg_trk : T().cat[n.cat];
+    return `<g class="node" data-k="${esc(n.key)}">${shape}
+      <text x="${xR+14}" y="${y-1}">${esc(trunc(n.label,maxChars))}</text>
+      <text class="sub" x="${xR+14}" y="${y+12}">${esc(sub)}${n.cum?" · "+fmtB(n.cum)+"B":""}</text></g>`;
+  }).join("");
+  svg.setAttribute("viewBox",`0 0 ${W} ${H}`);
+  svg.setAttribute("height",H);
+  svg.innerHTML=`<g>${edgeSVG}</g>${devSVG}${nodeSVG}`;
+  applyFocus();
+}
+function applyFocus(){
+  const svg=el("map");
+  svg.classList.toggle("focus", !!focusKey);
+  if(!focusKey) return;
+  const linked=new Set([focusKey]);
+  svg.querySelectorAll(".edge").forEach(p=>{
+    const on=p.dataset.a===focusKey || p.dataset.b===focusKey;
+    p.classList.toggle("f", on);
+    if(on){ linked.add(p.dataset.a); linked.add(p.dataset.b); }
+  });
+  svg.querySelectorAll(".node").forEach(g=>g.classList.toggle("f", linked.has(g.dataset.k)));
+}
+el("map").addEventListener("mousemove", e=>{
+  const n=e.target.closest(".node"), k=n?n.dataset.k:null;
+  if(k!==focusKey){ focusKey=k; applyFocus(); }
+});
+el("map").addEventListener("mouseleave", ()=>{ focusKey=null; applyFocus(); });
+el("map").addEventListener("click", e=>{
+  const n=e.target.closest(".node[data-dev]");
+  if(!n) return;
+  const card=document.querySelector(`.dev[data-ip="${CSS.escape(n.dataset.k)}"]`);
+  if(card) card.scrollIntoView({behavior:"smooth", block:"center"});
+});
+
+// ---- device cards ------------------------------------------------------------------------
+function timeStrip(ip){
+  const h=HIST[ip]||[];
+  const pad=Array(Math.max(0,HIST_MAX-h.length)).fill(null);
+  return [...pad,...h].map(x=>{
+    if(!x||!x.cat) return `<span${x?` title="${T().idle}"`:""}></span>`;
+    const when=new Date(x.t).toLocaleTimeString();
+    return `<span style="background:${CATCOLOR[x.cat]}" title="${when} · ${esc(T().act[x.cat])}"></span>`;
+  }).join("");
+}
+function card(d, maxTot){
+  const t=T();
+  const services=Object.values(d.services).sort((a,b)=>(b.bytes-a.bytes) || (CAT_ORDER.indexOf(a.cat)-CAT_ORDER.indexOf(b.cat)));
+  const meaningful=CAT_ORDER.filter(c=>!NOISE.has(c) && d.cats[c] && d.cats[c].bytes>0)
+    .sort((a,b)=>d.cats[b].bytes-d.cats[a].bytes);
+  const phrase = d.recent ? `<b>${esc(t.act[d.recent])}</b>`
+    : meaningful.length ? meaningful.slice(0,3).map(c=>esc(t.act[c])).join(" · ")
+    : `<span class="mut">${t.quiet}</span>`;
+  const nc=d.confirmed.length;
+  const grade = (services.length || Object.keys(d.trackers).length)
+    ? `<span class="grade ${nc===0?"g-ok":nc<5?"g-warn":"g-bad"}" title="${esc(t.tracker_help)}">${nc===0?t.g_none:nc===1?t.g_one:fmt(t.g_many,{n:nc})}</span>` : "";
+  const chips=services.slice(0,7).map(sv=>
+    `<span class="sc${sv.bytes?"":" dnsonly"}" style="--c:${CATCOLOR[sv.cat]}" title="${esc(t.cat[sv.cat])}${sv.bytes?" · "+fmtB(sv.bytes)+"B":" · "+esc(t.dns_only)}">${esc(sv.service)}</span>`).join("")
+    + (services.length>7?`<span class="mut">+${services.length-7}</span>`:"");
+  const trk=Object.keys(d.trackers).map(l=>({label:l,...d.trackers[l]})).sort((a,b)=>b.bytes-a.bytes);
+  const trkBlock = trk.length ? `<div class="trk${nc?"":" dnsonly"}" title="${esc(t.tracker_help)}">
+      <span class="h">${nc?t.trk_h:t.trk_h_dns}</span>
+      ${trk.slice(0,6).map(x=>`<span class="tc${x.bytes?"":" dns"}">${esc(x.label)}${x.bytes?` <em>${fmtB(x.bytes)}B</em>`:""}</span>`).join("")}
+      ${trk.length>6?`<span class="mut">+${trk.length-6}</span>`:""}
+    </div>` : "";
+  const live=d.rateRx+d.rateTx>0;
+  const opts=TYPES.map(x=>`<option value="${x}"${x===d.type?" selected":""}>${esc(t.type[x])}</option>`).join("");
+  const vendor = d.vendor && !/^[0-9a-f:]+$/i.test(d.vendor) ? d.vendor : "";
+  const meta=[t.type[d.type], vendor && vendor!==d.name ? vendor : "", d.ip].filter(Boolean).map(esc).join(" · ");
+  return `<div class="panel dev${live?" live":""}${d.isnew?" isnew":""}" data-ip="${esc(d.ip)}">
+    <div class="top">
+      <div class="ico" style="--c:${TYPECOLOR[d.type]}" title="${esc(d.guessed?t.guessed:t.type[d.type])}">${svgIcon(d.type)}${d.guessed?'<span class="guess">?</span>':""}
+        <select class="typesel" data-key="${esc(d.nickKey)}" aria-label="${esc(t.type[d.type])}">${opts}</select></div>
+      <div style="min-width:0">
+        <div class="name"><span>${esc(d.name)}</span>${d.isnew?`<span class="newbadge">${t.new_badge}</span>`:""}<button class="rename" data-key="${esc(d.nickKey)}" title="${esc(t.rename)}">✎</button></div>
+        <div class="meta">${meta}</div>
+      </div>
+      <div class="rate mono${live?"":" idle"}">↓ <span class="d">${fmtB(d.rateRx)}B/s</span><br>↑ <span class="u">${fmtB(d.rateTx)}B/s</span></div>
+    </div>
+    <div class="doing">${grade}${phrase}</div>
+    <div class="tl">${timeStrip(d.ip)}</div>
+    <div class="tl-axis"><span>-60s</span><span>${t.now}</span></div>
+    <div class="vol"><i class="d" style="width:${(d.rx/maxTot*100).toFixed(1)}%"></i><i class="u" style="width:${(d.tx/maxTot*100).toFixed(1)}%"></i></div>
+    <div class="vol-l"><span>↓ ${fmtB(d.rx)}B</span><span>↑ ${fmtB(d.tx)}B</span></div>
+    ${chips?`<div class="svc">${chips}</div>`:""}
+    ${trkBlock}
+  </div>`;
+}
+function renderCards(m){
+  if(HOLD) return; // a type picker is open; do not yank it out from under the user
+  const wrap=el("cards");
+  if(!m.list.length){ wrap.innerHTML=`<div class="panel empty">${T().none_dev}</div>`; return; }
+  // Re-rank only every 10 ticks (or when the set changes) so cards do not jump around.
+  const ips=m.list.map(d=>d.ip);
+  if(tickN%10===1 || ips.length!==ORDER.length || ips.some(ip=>!ORDER.includes(ip))){
+    ORDER=[...m.list].sort((a,b)=>(b.isnew-a.isnew) || ((b.tx+b.rx)-(a.tx+a.rx))).map(d=>d.ip);
+  }
+  const maxTot=Math.max(1,...m.list.map(d=>d.tx+d.rx));
+  wrap.innerHTML=ORDER.filter(ip=>m.byIP[ip]).map(ip=>card(m.byIP[ip], maxTot)).join("");
+}
+el("cards").addEventListener("click", e=>{
+  const b=e.target.closest(".rename");
+  if(!b) return;
+  const k=b.dataset.key, v=prompt(T().rename_prompt, NICK[k]||"");
+  if(v===null) return;
+  storeSet(NICK, k, v.trim(), "wtfi3_nick");
+  if(LAST) render(LAST);
+});
+el("cards").addEventListener("focusin", e=>{ if(e.target.matches(".typesel")) HOLD=true; });
+el("cards").addEventListener("focusout", e=>{ if(e.target.matches(".typesel")){ HOLD=false; } });
+el("cards").addEventListener("change", e=>{
+  const s=e.target.closest(".typesel");
+  if(!s) return;
+  storeSet(TYPEOVR, s.dataset.key, s.value, "wtfi3_type");
+  HOLD=false; s.blur();
+  if(LAST) render(LAST);
+});
+
+// ---- detailed view -----------------------------------------------------------------------
+function renderDetailed(s){
+  const t=T(), devs=s.devices||[]; el("ndev").textContent=devs.length;
+  el("devs").innerHTML = devs.length? devs.map(d=>`<tr>
+    <td class="host mono">${esc(d.ip)||"?"}${d.new?` <span class="newbadge">${t.new_badge}</span>`:""}</td>
+    <td>${esc(d.vendor)}</td><td class="mut mono">${esc(d.mac)}</td>
+    <td class="num tx">${fmtB(d.tx_bytes)}</td><td class="num rx">${fmtB(d.rx_bytes)}</td></tr>`).join("")
+    : `<tr><td colspan=5 class=empty>${t.none_dev}</td></tr>`;
+  const flows=s.flows||[]; el("nflow").textContent=flows.length;
+  const max=Math.max(1,...flows.map(f=>f.bytes));
+  el("flows").innerHTML = flows.length? flows.map(f=>`<tr>
+    <td class="mono">${esc(f.src)}</td><td class="mut mono">${esc(f.dst)}</td>
+    <td><span class="proto">${esc(f.proto)}</span></td><td class="num">${f.dst_port||""}</td>
+    <td class="host">${esc(f.sni)}</td>
+    <td class="num">${fmtB(f.bytes)}</td><td class="num mut">${f.packets}</td>
+    <td><div class="bar"><i style="width:${(f.bytes/max*100).toFixed(1)}%"></i></div></td></tr>`).join("")
+    : `<tr><td colspan=8 class=empty>${t.none_flow}</td></tr>`;
+  const dns=s.dns||[]; el("ndns").textContent=dns.length;
+  el("dns").innerHTML = dns.length? dns.map(d=>`<tr>
+    <td class="mut mono">${esc(d.client)}</td><td class="host">${esc(d.name)}</td>
+    <td><span class="proto">${esc(d.type)}</span></td><td class="mut mono">${esc(d.answer)}</td></tr>`).join("")
+    : `<tr><td colspan=4 class=empty>${t.none_dns}</td></tr>`;
+}
+
+// ---- header + top-level render --------------------------------------------------------------
+function renderHeader(s){
+  const t=T();
+  el("iface").textContent=s.iface; el("selfip").textContent=s.self_ip;
+  // macOS withholds the SSID unless the process has Location access, so say
+  // "hidden" rather than implying there is no link.
+  const w=s.wifi, chip=el("wifichip");
+  chip.hidden=!w;
+  if(w){
+    const open=w.connected && w.security==="NONE";
+    el("wifi").textContent=(!w.connected ? t.wifi_off : (w.ssid || (w.redacted ? t.wifi_hidden : "-")))+(open?" ⚠ "+t.wifi_open:"");
+    chip.classList.toggle("danger", open);
+  }
+  const m=el("netmode");
+  m.className="chip "+(s.spoof?"mode-spoof":"mode-passive");
+  m.textContent=s.spoof ? "MITM"+((s.spoof_list||[]).length?" × "+s.spoof_list.length:"") : "passive";
+}
+function render(s, fresh){
+  LAST=s;
+  if(fresh){
+    tickN++;
+    MODEL=buildModel(s);
+    updateHistory(MODEL);
+    detectEvents(MODEL, s);
+  } else if(MODEL){
+    // re-render after a toggle/rename: refresh names and types without advancing time
+    MODEL.list.forEach(d=>{
+      const base=d.ip===MODEL.selfIP?T().this_dev:d.ip===MODEL.gw?T().router
+        :(d.vendor&&!d.vendor.startsWith("randomized")&&!/^[0-9a-f:]+$/i.test(d.vendor)?d.vendor:T().unknown_dev);
+      d.name=NICK[d.nickKey]||base;
+      d.type=TYPEOVR[d.nickKey]||guessType(d, MODEL.selfIP, MODEL.gw);
+      d.guessed=!TYPEOVR[d.nickKey];
+    });
+  }
+  if(!MODEL) return;
+  renderHeader(s);
+  renderHero(MODEL, s);
+  if(view==="simple"){
+    drawChart(s.series||[]);
+    renderMap(MODEL);
+    renderFeed();
+    renderCards(MODEL);
+  } else renderDetailed(s);
+}
 
 function applyLang(){
-  document.documentElement.lang = lang;
-  document.querySelectorAll("[data-i18n]").forEach(e=>{ e.textContent = T()[e.dataset.i18n]||e.dataset.i18n; });
-  el("lang").textContent = T().lang;
+  document.documentElement.lang=lang;
+  document.querySelectorAll("[data-i18n]").forEach(e=>{ e.textContent=T()[e.dataset.i18n]??e.dataset.i18n; });
+  el("lang").textContent=T().lang;
   applyView();
 }
 function applyView(){
   el("simple").hidden = view!=="simple";
   el("detailed").hidden = view==="simple";
-  el("view").textContent = view==="simple" ? T().view_detailed : T().view_simple;
-  el("view").classList.toggle("on", view==="simple");
-}
-el("lang").onclick = ()=>{ lang = lang==="en"?"ja":"en"; try{localStorage.setItem("wtfi3_lang",lang)}catch(e){} applyLang(); if(LAST) render(LAST); };
-el("view").onclick = ()=>{ view = view==="simple"?"detailed":"simple"; try{localStorage.setItem("wtfi3_view",view)}catch(e){} applyView(); if(LAST) render(LAST); };
-
-let LAST=null;   // most recent snapshot, for re-render on toggle/rename
-// rename is triggered from a card button via event delegation (no inline
-// onclick), so a device key never has to be interpolated into a JS string.
-function renameDev(key){
-  const cur = NICK[key]||"";
-  const v = prompt(T().rename_prompt, cur);
-  if(v===null) return;
-  if(v.trim()) NICK[key]=v.trim(); else delete NICK[key];
-  try{localStorage.setItem("wtfi3_nick", JSON.stringify(NICK))}catch(e){}
-  if(LAST) render(LAST);
-}
-el("cards").addEventListener("click", e=>{
-  const b = e.target.closest(".rename");
-  if(b) renameDev(b.dataset.key);
-});
-
-function drawChart(series){
-  const cv=el("chart"), ctx=cv.getContext("2d");
-  const w=cv.clientWidth||600, h=130, dpr=devicePixelRatio||1;
-  if(cv.width!==Math.round(w*dpr)){cv.width=w*dpr;cv.height=h*dpr;}
-  ctx.setTransform(dpr,0,0,dpr,0,0);
-  ctx.clearRect(0,0,w,h);
-  const cs=getComputedStyle(document.body);
-  const line=cs.getPropertyValue("--line"), acc=cs.getPropertyValue("--accent").trim();
-  const max=Math.max(1,...series);
-  el("bw").textContent = series.length? fmtB(series[series.length-1])+"B/s · "+T().peak+" "+fmtB(max)+"B/s" : "0";
-  ctx.strokeStyle=line;ctx.lineWidth=1;
-  for(let i=1;i<4;i++){const y=h*i/4;ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(w,y);ctx.stroke();}
-  if(!series.length) return;
-  const n=120, step=w/(n-1), off=n-series.length;
-  const path=(close)=>{ctx.beginPath();series.forEach((v,i)=>{const x=(off+i)*step,y=h-(v/max)*(h-10)-5;i?ctx.lineTo(x,y):ctx.moveTo(x,y);});
-    if(close){ctx.lineTo((off+series.length-1)*step,h);ctx.lineTo(off*step,h);ctx.closePath();}};
-  path(true);
-  const g=ctx.createLinearGradient(0,0,0,h);g.addColorStop(0,"rgba(179,157,219,.45)");g.addColorStop(1,"rgba(179,157,219,0)");
-  ctx.fillStyle=g;ctx.fill();
-  path(false);ctx.strokeStyle=acc;ctx.lineWidth=2;ctx.lineJoin="round";ctx.stroke();
-}
-
-// Build a friendly per-device summary from flows + DNS.
-function buildSimple(s){
-  const selfIP=s.self_ip, gw=s.gateway;
-  const devs={};
-  const dev = ip => devs[ip] || (devs[ip]={ip, services:{}, trackers:{}, tx:0, rx:0, vendor:"", mac:"", isnew:false});
-  (s.devices||[]).forEach(d=>{ const x=dev(d.ip); x.tx=d.tx_bytes; x.rx=d.rx_bytes; x.vendor=d.vendor; x.mac=d.mac; x.isnew=!!d.new; });
-  const add = (ip, host, bytes) => {
-    if(!ip||!host||!devs[ip]) return; // only attribute to known LAN devices
-    const {service,cat}=classify(host), key=cat+"|"+service;
-    (devs[ip].services[key]=devs[ip].services[key]||{service,cat,bytes:0}).bytes += bytes||0;
-    const tr=trackerOf(host);
-    if(tr){ const t=devs[ip].trackers[tr.label]=devs[ip].trackers[tr.label]||{kind:tr.kind,hits:0,bytes:0}; t.hits++; t.bytes+=bytes||0; }
-  };
-  (s.flows||[]).forEach(f=>{ if(f.sni) add(f.src, f.sni, f.bytes); });
-  (s.dns||[]).forEach(e=> add(e.client, e.name, 0));
-
-  return Object.values(devs).sort((a,b)=>(b.tx+b.rx)-(a.tx+a.rx)).map(x=>{
-    const nickKey = (x.mac && /[0-9a-f]{2}:/.test(x.mac)) ? x.mac : x.ip;
-    const base = x.ip===selfIP ? T().this_dev : x.ip===gw ? T().router
-      : (x.vendor && x.vendor!=="randomized?" && !/^[0-9a-f:]+$/.test(x.vendor) ? x.vendor : T().unknown_dev);
-    const name = NICK[nickKey] || base;
-    const cats={};
-    Object.values(x.services).forEach(sv=>{
-      const c=cats[sv.cat]=cats[sv.cat]||{bytes:0,names:{}};
-      c.bytes+=sv.bytes; c.names[sv.service]=(c.names[sv.service]||0)+sv.bytes+1;
-    });
-    const ordered = Object.keys(cats)
-      .sort((a,b)=> (cats[b].bytes-cats[a].bytes) || (CAT_ORDER.indexOf(a)-CAT_ORDER.indexOf(b)));
-    const trackers = Object.keys(x.trackers)
-      .sort((a,b)=> x.trackers[b].hits-x.trackers[a].hits);
-    return {name, nickKey, ip:x.ip, tx:x.tx, rx:x.rx, cats, ordered, isnew:x.isnew, trackers, trackerInfo:x.trackers};
+  document.querySelectorAll("#viewseg button").forEach(b=>{
+    b.textContent = b.dataset.v==="simple" ? T().view_simple : T().view_detailed;
+    b.classList.toggle("on", b.dataset.v===view);
   });
 }
-
-// updateHistory records, per device, the dominant meaningful category since the
-// previous tick (by transferred-byte delta), for the recent-activity timeline.
-function updateHistory(list){
-  const t=Date.now();
-  list.forEach(d=>{
-    const prev=PREV[d.ip]||{}, cur={};
-    let bestCat=null, bestDelta=0;
-    Object.keys(d.cats).forEach(c=>{
-      cur[c]=d.cats[c].bytes;
-      if(NOISE.has(c)) return;
-      const delta=cur[c]-(prev[c]||0);
-      if(delta>bestDelta){ bestDelta=delta; bestCat=c; }
-    });
-    PREV[d.ip]=cur;
-    const h=HIST[d.ip]||(HIST[d.ip]=[]);
-    h.push({t, cat:bestDelta>0?bestCat:null});
-    if(h.length>HIST_MAX) h.splice(0, h.length-HIST_MAX);
-  });
-}
-
-function timeStrip(ip){
-  const h=HIST[ip]||[];
-  if(!h.length) return "";
-  const segs=h.map(seg=>{
-    if(!seg.cat) return `<span class="seg idle" title="${T().idle}"></span>`;
-    const when=new Date(seg.t).toLocaleTimeString();
-    return `<span class="seg" style="background:${CATCOLOR[seg.cat]}" title="${when} · ${T().act[seg.cat]}"></span>`;
-  }).join("");
-  return `<div class="tl-label">${T().recent}</div><div class="tl">${segs}</div>`;
-}
-
-function renderSimple(s){
-  const list=buildSimple(s);
-  updateHistory(list);
-  const wrap=el("cards");
-  if(!list.length){ wrap.innerHTML=`<div class="empty">${T().none_dev}</div>`; return; }
-  wrap.innerHTML = list.map(d=>{
-    const meaningful=d.ordered.filter(c=>!NOISE.has(c) && d.cats[c].bytes>0);
-    const phrase = meaningful.length
-      ? T().doing_prefix+" "+meaningful.slice(0,3).map(c=>T().act[c]).join(" / ")
-      : `<span class="mut">${T().quiet}</span>`;
-    const rows = d.ordered.slice(0,6).map(c=>{
-      const names=Object.keys(d.cats[c].names).sort((a,b)=>d.cats[c].names[b]-d.cats[c].names[a]).slice(0,4).join(", ");
-      const seen=d.cats[c].bytes>0 ? "" : ` <span class="mut">(${T().dns_only})</span>`;
-      return `<div class="row"><span class="cat cat-${c}">${T().cat[c]}</span><span class="names">${esc(names)}${seen}</span></div>`;
-    }).join("");
-    // Distinguish trackers with confirmed TLS/SNI traffic (bytes>0) from ones
-    // only seen as a DNS lookup, mirroring the (dns_only) marker on the service
-    // list. Only confirmed contacts count toward the "phoning home" headline.
-    const trk=d.trackers.map(l=>({label:l, ...d.trackerInfo[l]}));
-    const nc=trk.filter(t=>t.bytes>0).length;
-    const ordered=[...trk.filter(t=>t.bytes>0), ...trk.filter(t=>t.bytes===0)];
-    const head = nc ? "🛰 "+(nc===1?T().tracker_one:T().tracker_many.replace("{n}",nc))
-      : (trk.length===1?T().tracker_dns_one:T().tracker_dns_many.replace("{n}",trk.length));
-    const trackerBlock = trk.length ? `<div class="trk${nc?"":" trk-dnsonly-only"}" title="${esc(T().tracker_help)}">
-      <span class="trk-h">${head}</span>
-      <span class="trk-list">${ordered.slice(0,6).map(t=>`<span class="trk-chip trk-${t.kind}${t.bytes>0?"":" trk-dns"}">${esc(t.label)}${t.bytes>0?"":" · DNS"}</span>`).join("")}${trk.length>6?`<span class="mut">+${trk.length-6}</span>`:""}</span>
-    </div>` : "";
-    return `<div class="dev${d.isnew?" isnew":""}">
-      <div class="top">
-        <span class="name">${esc(d.name)}</span>
-        ${d.isnew?`<span class="newbadge">${T().new_badge}</span>`:""}
-        <span class="ip">${esc(d.ip)}</span>
-        <button class="rename" data-key="${esc(d.nickKey)}">${T().rename}</button>
-        <span class="bw">${T().up_short} ${fmtB(d.tx)} · ${T().down_short} ${fmtB(d.rx)}</span>
-      </div>
-      <div class="doing">${phrase}</div>
-      ${timeStrip(d.ip)}
-      <div class="svc">${rows||`<span class="mut">${T().quiet}</span>`}</div>
-      ${trackerBlock}
-    </div>`;
-  }).join("");
-}
-
-function renderDetailed(s){
-  const devs=s.devices||[]; el("ndev").textContent=devs.length;
-  el("devs").innerHTML = devs.length? devs.map(d=>`<tr>
-    <td class="host">${esc(d.ip)||"<span class=mut>?</span>"}${d.new?` <span class="newbadge">${T().new_badge}</span>`:""}</td>
-    <td>${esc(d.vendor)}</td><td class="mut">${esc(d.mac)}</td>
-    <td class="num tx">${fmtB(d.tx_bytes)}</td><td class="num rx">${fmtB(d.rx_bytes)}</td></tr>`).join("")
-    : `<tr><td colspan=5 class=empty>${T().none_dev}</td></tr>`;
-
-  const flows=s.flows||[]; el("nflow").textContent=flows.length;
-  const max=Math.max(1,...flows.map(f=>f.bytes));
-  el("flows").innerHTML = flows.length? flows.map(f=>`<tr>
-    <td>${esc(f.src)}</td><td class="mut">${esc(f.dst)}</td>
-    <td><span class="chip ${f.proto}">${esc(f.proto)}</span></td><td class="num">${f.dst_port||""}</td>
-    <td class="host">${esc(f.sni)||""}</td>
-    <td class="num">${fmtB(f.bytes)}</td><td class="num mut">${f.packets}</td>
-    <td><div class="bar"><i style="width:${(f.bytes/max*100).toFixed(1)}%"></i></div></td></tr>`).join("")
-    : `<tr><td colspan=8 class=empty>${T().none_flow}</td></tr>`;
-
-  const dns=s.dns||[]; el("ndns").textContent=dns.length;
-  el("dns").innerHTML = dns.length? dns.map(d=>`<tr>
-    <td class="mut">${esc(d.client)}</td><td class="host">${esc(d.name)}</td>
-    <td><span class="chip">${esc(d.type)}</span></td><td class="mut">${esc(d.answer)}</td></tr>`).join("")
-    : `<tr><td colspan=4 class=empty>${T().none_dns}</td></tr>`;
-}
-
-function render(s){
-  LAST=s;
-  el("iface").textContent=s.iface; el("selfip").textContent=s.self_ip;
-  // wifi pill: only for wireless captures. macOS withholds the SSID unless the
-  // process has Location access, so say "hidden" rather than implying no link.
-  const w=s.wifi;
-  el("wifipill").hidden = !w;
-  if(w){
-    let t = !w.connected ? T().wifi_off : (w.ssid || (w.redacted ? T().wifi_hidden : "-"));
-    if(w.connected && w.security==="NONE") t += " ⚠ "+T().wifi_open;
-    el("wifi").textContent = t;
-  }
-  el("total").textContent=s.total_mb.toFixed(1)+" MB";
-  el("up").textContent=Math.round(s.uptime_sec)+"s";
-  const m=el("netmode");
-  m.className="pill mode "+(s.spoof?"spoof":"passive");
-  m.textContent=s.spoof?("MITM"+(s.spoof_list&&s.spoof_list.length?" ×"+s.spoof_list.length:"")):"passive";
-  const nnew=(s.devices||[]).filter(d=>d.new).length, na=el("newalert");
-  na.hidden = nnew===0;
-  if(nnew) na.textContent = "⚠ "+(nnew===1?T().new_one:T().new_many.replace("{n}",nnew));
-  drawChart(s.series||[]);
-  if(view==="simple") renderSimple(s); else renderDetailed(s);
-}
+el("lang").onclick=()=>{ lang=lang==="en"?"ja":"en"; try{localStorage.setItem("wtfi3_lang",lang)}catch(e){} applyLang(); if(LAST) render(LAST); };
+el("viewseg").onclick=e=>{
+  const b=e.target.closest("button"); if(!b) return;
+  view=b.dataset.v; try{localStorage.setItem("wtfi3_view",view)}catch(e){}
+  applyView(); if(LAST) render(LAST);
+};
+window.addEventListener("resize", ()=>{ if(LAST) render(LAST); });
 
 // Prefer a Server-Sent Events push stream; fall back to polling if it fails.
+function onState(s){ lastMsg=Date.now(); render(s, true); }
 let polling=false;
 function startPolling(){
   if(polling) return; polling=true;
-  const poll=async()=>{ try{ render(await (await fetch("/api/state")).json()); }catch(e){} };
+  const poll=async()=>{ try{ onState(await (await fetch("/api/state")).json()); }catch(e){} };
   poll(); setInterval(poll,1000);
 }
 function connect(){
   if(!("EventSource" in window)){ startPolling(); return; }
   const es=new EventSource("/api/stream");
-  es.onmessage=e=>{ try{ render(JSON.parse(e.data)); }catch(_){}};
+  es.onmessage=e=>{ let s; try{ s=JSON.parse(e.data); }catch(_){ return; } onState(s); };
   es.onerror=()=>{ es.close(); startPolling(); };
 }
+setInterval(()=>{
+  const stale=Date.now()-lastMsg>3500, b=el("beacon");
+  b.classList.toggle("stale", stale);
+  b.title = stale ? T().stale : "";
+}, 1000);
 applyLang(); connect();
 </script>
 </body>
