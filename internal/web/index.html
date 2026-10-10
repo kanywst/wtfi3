@@ -418,6 +418,10 @@ const RULES = [
   [/perplexity|copilot\.microsoft|githubcopilot/, "AI", "ai"],
   // email
   [/mail\.google\.com|(^|\.)gmail\.com|(^|\.)imap|(^|\.)smtp|mail\.me\.com|outlook\.(office|live)|mail\.yahoo/, "Mail", "email"],
+  // Amazon device traffic before the Amazon shopping rule, which would otherwise swallow it.
+  [/music\.amazon|amazonmusic/, "Amazon Music", "music"],
+  [/avs-alexa|(^|\.)alexa\.amazon|amazonalexa/, "Alexa", "ai"],
+  [/device-metrics[^.]*\.amazon|(^|\.)fls-[a-z]+\.amazon/, "Amazon telemetry", "ads"],
   // shopping
   [/unagi|amazon\.(co\.)?[a-z]+|media-amazon|images-amazon|ssl-images|amazonpay/, "Amazon", "shopping"],
   [/rakuten|mercari|(^|\.)ebay|aliexpress|(^|\.)temu|shein|shopify|(^|\.)zozo|yodobashi|(^|\.)etsy|shopping\.yahoo/, "Shopping", "shopping"],

@@ -14,6 +14,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
   - a "what just happened" feed (new devices, activity changes, first data sent to a tracker, spikes), with the same events marked on the throughput graph;
   - device cards with a device-type icon you can correct, live up/down rates, a green/amber/red tracker badge, and service chips.
 - Dark theme by default, with a light theme that follows the OS setting. Animations are disabled when the OS asks for reduced motion.
+- Alexa, Amazon Music, and Amazon device telemetry are no longer classified as Amazon shopping.
 
 ### Added
 
