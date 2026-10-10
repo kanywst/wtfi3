@@ -86,7 +86,7 @@ func TestParseIWLink(t *testing.T) {
 		t.Errorf("got %+v", w)
 	}
 	// Malformed "Connected to" line with no BSSID must not panic the parser
-	// (LookupWiFi is polled from EvictLoop, so a panic would crash the process).
+	// (LookupWiFi is polled periodically, so a panic would crash the process).
 	if w := parseIWLink("Connected to\nSSID: x\n"); w.BSSID != "" {
 		t.Errorf("malformed line: got %+v", w)
 	}

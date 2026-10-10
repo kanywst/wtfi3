@@ -395,8 +395,8 @@ func (s *State) refreshWiFi() {
 	s.mu.Unlock()
 }
 
-// EvictLoop drops flows idle for more than two minutes until ctx is canceled.
-func (s *State) EvictLoop(ctx context.Context) {
+// wifiLoop refreshes the WiFi association every 15s until ctx is canceled.
+func (s *State) wifiLoop(ctx context.Context) {
 	t := time.NewTicker(15 * time.Second)
 	defer t.Stop()
 	for {
@@ -405,6 +405,23 @@ func (s *State) EvictLoop(ctx context.Context) {
 			return
 		case <-t.C:
 			s.refreshWiFi()
+		}
+	}
+}
+
+// EvictLoop drops flows idle for more than two minutes until ctx is canceled.
+func (s *State) EvictLoop(ctx context.Context) {
+	// The WiFi lookup execs external tools that can block for their full
+	// timeouts (about 12s worst case on Linux), so it runs on its own goroutine
+	// and never delays eviction or shutdown.
+	go s.wifiLoop(ctx)
+	t := time.NewTicker(15 * time.Second)
+	defer t.Stop()
+	for {
+		select {
+		case <-ctx.Done():
+			return
+		case <-t.C:
 			cut := time.Now().Add(-2 * time.Minute)
 			s.mu.Lock()
 			for k, f := range s.flows {
