@@ -30,7 +30,7 @@ type device struct {
 }
 
 type flow struct {
-	Src, Dst, Proto, SNI string
+	Key, Src, Dst, Proto, SNI string
 	Port                 int
 	Bytes, Packets       uint64
 }
@@ -99,15 +99,17 @@ func step() {
 			k := d.IP + ">" + host
 			f := flows[k]
 			if f == nil {
-				f = &flow{Src: d.IP, Dst: fmt.Sprintf("203.0.113.%d", 1+len(flows)%250), Proto: "tcp", Port: 443, SNI: host}
+				f = &flow{Key: k, Src: d.IP, Dst: fmt.Sprintf("203.0.113.%d", 1+len(flows)%250), Proto: "tcp", Port: 443, SNI: host}
 				flows[k] = f
 				dns = append(dns, dnsEntry{Client: d.IP, Name: host, Type: "A", Answer: f.Dst, Time: time.Now()})
 				if len(dns) > 80 {
 					dns = dns[len(dns)-80:]
 				}
 			}
-			f.Bytes += n
-			f.Packets += n/1200 + 1
+			// Like the real aggregator, the SNI-bearing flow is the client's
+			// upload direction; the download lands only in the device totals.
+			f.Bytes += n / 10
+			f.Packets += n/12000 + 1
 			d.Rx += n * 9 / 10
 			d.Tx += n / 10
 			total += n
@@ -142,7 +144,7 @@ func snapshot() map[string]any {
 	}
 	var fo []map[string]any
 	for _, f := range fl {
-		fo = append(fo, map[string]any{"src": f.Src, "dst": f.Dst, "proto": f.Proto, "dst_port": f.Port,
+		fo = append(fo, map[string]any{"key": f.Key, "src": f.Src, "dst": f.Dst, "proto": f.Proto, "dst_port": f.Port,
 			"sni": f.SNI, "bytes": f.Bytes, "packets": f.Packets})
 	}
 	var do []map[string]any
