@@ -6,6 +6,20 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+### Changed
+
+- Redesigned the dashboard, using the way Little Snitch, Sniffnet, ntopng, Fing, Pi-hole, GlassWire, and Apple's App Privacy Report present network activity as reference. The simple view now has:
+  - a one-sentence summary and four headline numbers;
+  - a live device-to-service/tracker map whose lines animate while bytes flow;
+  - a "what just happened" feed (new devices, activity changes, first data sent to a tracker, spikes), with the same events marked on the throughput graph;
+  - device cards with a device-type icon you can correct, live up/down rates, a green/amber/red tracker badge, and service chips.
+- Dark theme by default, with a light theme that follows the OS setting. Animations are disabled when the OS asks for reduced motion.
+- Alexa, Amazon Music, and Amazon device telemetry are no longer classified as Amazon shopping.
+
+### Added
+
+- `make demo` serves the dashboard on synthetic, ever-changing household traffic, without root or a network.
+
 ## [0.6.0] - 2026-10-10
 
 ### Security
