@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+### Security
+
+- Release binaries are built with Go 1.26.9, which fixes 7 Go standard library vulnerabilities reachable from wtfi3 on 1.26.8 (crypto/tls, net/http, net/textproto: GO-2026-6603, GO-2026-6607, GO-2026-6608, GO-2026-6611, GO-2026-6612, GO-2026-6613, GO-2026-6617). The minimum Go version for building from source is unchanged.
+
 ## [0.5.1] - 2026-10-07
 
 ### Security
