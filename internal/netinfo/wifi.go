@@ -33,14 +33,20 @@ const redacted = "<redacted>"
 // otherwise leave WiFi reporting disabled for the life of the process.
 func runWiFiCmd(name string, args ...string) (string, bool) {
 	for range 2 { // one retry to absorb a transient error
-		ctx, cancel := context.WithTimeout(context.Background(), 4*time.Second)
-		out, err := exec.CommandContext(ctx, name, args...).Output()
-		cancel()
-		if err == nil {
-			return string(out), true
+		if out, ok := runWiFiCmdOnce(name, args...); ok {
+			return out, true
 		}
 	}
 	return "", false
+}
+
+// runWiFiCmdOnce is runWiFiCmd without the retry, for best-effort lookups that
+// may fail deterministically (no permission, unsupported driver) on every poll.
+func runWiFiCmdOnce(name string, args ...string) (string, bool) {
+	ctx, cancel := context.WithTimeout(context.Background(), 4*time.Second)
+	defer cancel()
+	out, err := exec.CommandContext(ctx, name, args...).Output()
+	return string(out), err == nil
 }
 
 // LookupWiFi reports the wireless network on the named interface, or nil if the
@@ -66,7 +72,18 @@ func LookupWiFi(name string) *WiFi {
 		if !ok {
 			return &WiFi{}
 		}
-		return parseIWLink(out)
+		w := parseIWLink(out)
+		if w.Connected {
+			// `iw link` has no cipher, so read it from the cached scan entry of
+			// the associated BSS. cfg80211 keeps that entry current from the
+			// AP's beacons while associated, so it is not a stale scan result.
+			// A miss leaves Security empty (unknown), which the dashboard
+			// treats as "no warning" rather than "open".
+			if dump, ok := runWiFiCmdOnce("iw", "dev", name, "scan", "dump"); ok {
+				w.Security = parseIWScanSecurity(dump, w.BSSID)
+			}
+		}
+		return w
 	}
 	return nil
 }
@@ -106,9 +123,8 @@ func parseIPConfigSummary(out string) *WiFi {
 	return w
 }
 
-// parseIWLink reads `iw dev <if> link` output. Note: `iw link` does not report
-// the cipher/security, so WiFi.Security stays empty on Linux and the dashboard's
-// open-network warning is macOS-only for now (see the README).
+// parseIWLink reads `iw dev <if> link` output. `iw link` does not report the
+// cipher/security; LookupWiFi fills Security from parseIWScanSecurity.
 func parseIWLink(out string) *WiFi {
 	w := &WiFi{}
 	for _, line := range strings.Split(out, "\n") {
@@ -128,6 +144,90 @@ func parseIWLink(out string) *WiFi {
 		}
 	}
 	return w
+}
+
+// parseIWScanSecurity finds the BSS entry for bssid in `iw dev <if> scan dump`
+// output (or the one marked "-- associated" when bssid is empty) and derives a
+// security label in the same vocabulary as macOS's ipconfig: "NONE" for an open
+// network, otherwise WEP, WPA/WPA2/WPA3 variants, or OWE (Enhanced Open, which
+// is encrypted). It returns "" when the entry is not in the scan cache.
+func parseIWScanSecurity(out, bssid string) string {
+	var in, found, privacy, rsn, wpa bool
+	var auth []string
+	section := "" // "RSN" or "WPA" while reading that element's sub-lines
+	for _, raw := range strings.Split(out, "\n") {
+		line := strings.TrimSpace(raw)
+		if strings.HasPrefix(raw, "BSS ") {
+			if in {
+				break // finished the matching entry
+			}
+			f := strings.Fields(strings.TrimPrefix(raw, "BSS "))
+			if len(f) == 0 {
+				continue
+			}
+			mac, _, _ := strings.Cut(f[0], "(")
+			if bssid != "" {
+				in = strings.EqualFold(mac, bssid)
+			} else {
+				in = strings.HasSuffix(strings.TrimSpace(raw), "-- associated")
+			}
+			found = found || in
+			continue
+		}
+		if !in {
+			continue
+		}
+		switch {
+		case strings.HasPrefix(line, "capability:"):
+			privacy = strings.Contains(line, "Privacy")
+			section = ""
+		case strings.HasPrefix(line, "RSN:"):
+			rsn, section = true, "RSN"
+		case strings.HasPrefix(line, "WPA:"):
+			wpa, section = true, "WPA"
+		case strings.HasPrefix(line, "* Authentication suites:"):
+			if section == "RSN" || (section == "WPA" && !rsn) {
+				auth = strings.Fields(strings.TrimPrefix(line, "* Authentication suites:"))
+			}
+		case !strings.HasPrefix(line, "*"):
+			section = "" // a new top-level element ends RSN/WPA
+		}
+	}
+	if !found {
+		return ""
+	}
+	if !rsn && !wpa {
+		if privacy {
+			return "WEP"
+		}
+		return "NONE"
+	}
+	has := func(s string) bool {
+		for _, a := range auth {
+			if a == s {
+				return true
+			}
+		}
+		return false
+	}
+	switch {
+	case !rsn:
+		if has("PSK") {
+			return "WPA_PSK"
+		}
+		return "WPA_EAP"
+	case has("OWE"):
+		return "OWE"
+	case has("SAE") || has("FT/SAE"):
+		if has("PSK") {
+			return "WPA2_WPA3_PSK"
+		}
+		return "WPA3_SAE"
+	case has("PSK") || has("FT/PSK") || has("PSK/SHA-256"):
+		return "WPA2_PSK"
+	default:
+		return "WPA2_EAP"
+	}
 }
 
 // readable returns the value unless the OS withheld it, and whether it did.
