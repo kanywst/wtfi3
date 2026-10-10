@@ -6,10 +6,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
-### Fixed
+## [0.7.0] - 2026-10-10
 
-- The periodic WiFi lookup runs on its own goroutine. A hung `iw` (up to about 12s on Linux) no longer delays flow eviction or shutdown.
-- An access point offering only FT/PSK and FT/SAE is labelled mixed WPA2/WPA3 instead of WPA3-only.
+### Added
+
+- `make demo` serves the dashboard on synthetic, ever-changing household traffic, without root or a network.
 
 ### Changed
 
@@ -21,9 +22,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - Dark theme by default, with a light theme that follows the OS setting. Animations are disabled when the OS asks for reduced motion.
 - Alexa, Amazon Music, and Amazon device telemetry are no longer classified as Amazon shopping.
 
-### Added
+### Fixed
 
-- `make demo` serves the dashboard on synthetic, ever-changing household traffic, without root or a network.
+- The periodic WiFi lookup runs on its own goroutine. A hung `iw` (up to about 12s on Linux) no longer delays flow eviction or shutdown.
+- An access point offering only FT/PSK and FT/SAE is labelled mixed WPA2/WPA3 instead of WPA3-only.
 
 ## [0.6.0] - 2026-10-10
 
@@ -132,7 +134,8 @@ These features were merged after 0.5.0 and first shipped in this release. Given 
 - Optional packet dump to `.pcap` (`-w`) for analysis in Wireshark.
 - Dashboard internationalization: English default with a Japanese toggle.
 
-[Unreleased]: https://github.com/kanywst/wtfi3/compare/v0.6.0...HEAD
+[Unreleased]: https://github.com/kanywst/wtfi3/compare/v0.7.0...HEAD
+[0.7.0]: https://github.com/kanywst/wtfi3/compare/v0.6.0...v0.7.0
 [0.6.0]: https://github.com/kanywst/wtfi3/compare/v0.5.1...v0.6.0
 [0.5.1]: https://github.com/kanywst/wtfi3/compare/v0.5.0...v0.5.1
 [0.5.0]: https://github.com/kanywst/wtfi3/compare/v0.4.0...v0.5.0
