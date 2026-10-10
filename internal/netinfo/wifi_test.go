@@ -86,7 +86,7 @@ func TestParseIWLink(t *testing.T) {
 		t.Errorf("got %+v", w)
 	}
 	// Malformed "Connected to" line with no BSSID must not panic the parser
-	// (LookupWiFi is polled from EvictLoop, so a panic would crash the process).
+	// (LookupWiFi is polled periodically, so a panic would crash the process).
 	if w := parseIWLink("Connected to\nSSID: x\n"); w.BSSID != "" {
 		t.Errorf("malformed line: got %+v", w)
 	}
@@ -129,6 +129,7 @@ func TestParseIWScanSecurity(t *testing.T) {
 		{"wpa1 psk", "BSS 01:02:03:04:05:06(on wlan0)\n\tcapability: ESS Privacy (0x0011)\n\tWPA:\t * Version: 1\n\t\t * Authentication suites: PSK\n", "01:02:03:04:05:06", "WPA_PSK"},
 		{"wpa3 only", "BSS 01:02:03:04:05:06(on wlan0)\n\tcapability: ESS Privacy (0x0011)\n\tRSN:\t * Version: 1\n\t\t * Authentication suites: SAE\n", "01:02:03:04:05:06", "WPA3_SAE"},
 		{"owe is not open", "BSS 01:02:03:04:05:06(on wlan0)\n\tcapability: ESS Privacy (0x0011)\n\tRSN:\t * Version: 1\n\t\t * Authentication suites: OWE\n", "01:02:03:04:05:06", "OWE"},
+		{"ft-only mixed", "BSS 01:02:03:04:05:06(on wlan0)\n\tcapability: ESS Privacy (0x0011)\n\tRSN:\t * Version: 1\n\t\t * Authentication suites: FT/PSK FT/SAE\n", "01:02:03:04:05:06", "WPA2_WPA3_PSK"},
 		{"rsn without auth suites", "BSS 01:02:03:04:05:06(on wlan0)\n\tcapability: ESS Privacy (0x0011)\n\tRSN:\t * Version: 1\n", "01:02:03:04:05:06", "WPA2_EAP"},
 		{"malformed BSS line", "BSS \n\tcapability: ESS (0x0001)\n", "", ""},
 	}

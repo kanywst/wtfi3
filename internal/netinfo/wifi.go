@@ -28,7 +28,7 @@ type WiFi struct {
 const redacted = "<redacted>"
 
 // runWiFiCmd runs a short-lived query command with a timeout, so a wedged driver
-// or hung tool cannot stall the periodic refresh that EvictLoop drives. It
+// or hung tool cannot stall the periodic WiFi refresh. It
 // retries once on error to absorb a transient failure at startup, which would
 // otherwise leave WiFi reporting disabled for the life of the process.
 func runWiFiCmd(name string, args ...string) (string, bool) {
@@ -135,7 +135,7 @@ func parseIWLink(out string) *WiFi {
 		case strings.HasPrefix(line, "Connected to "):
 			w.Connected = true
 			// Guard the index: malformed `iw` output must not panic a poll,
-			// since LookupWiFi is called periodically from EvictLoop.
+			// since LookupWiFi is called periodically by the WiFi refresh loop.
 			if f := strings.Fields(strings.TrimPrefix(line, "Connected to ")); len(f) > 0 {
 				w.BSSID = f[0]
 			}
@@ -219,7 +219,7 @@ func parseIWScanSecurity(out, bssid string) string {
 	case has("OWE"):
 		return "OWE"
 	case has("SAE") || has("FT/SAE"):
-		if has("PSK") {
+		if has("PSK") || has("FT/PSK") {
 			return "WPA2_WPA3_PSK"
 		}
 		return "WPA3_SAE"
