@@ -6,7 +6,7 @@
 // show up on reload.
 //
 //	go run hack/demo.go            # http://localhost:8099
-//	go run hack/demo.go -listen :9000
+//	go run hack/demo.go -listen 127.0.0.1:9000
 package main
 
 import (
@@ -162,7 +162,7 @@ func snapshot() map[string]any {
 }
 
 func main() {
-	listen := flag.String("listen", ":8099", "listen address")
+	listen := flag.String("listen", "127.0.0.1:8099", "listen address (loopback by default)")
 	flag.Parse()
 	go func() {
 		for range time.Tick(time.Second) {
@@ -197,6 +197,6 @@ func main() {
 			}
 		}
 	})
-	log.Printf("demo dashboard on http://localhost%s", *listen)
+	log.Printf("demo dashboard on http://%s", *listen)
 	log.Fatal(http.ListenAndServe(*listen, nil))
 }
