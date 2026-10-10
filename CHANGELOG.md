@@ -6,6 +6,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+### Fixed
+
+- The periodic WiFi lookup runs on its own goroutine. A hung `iw` (up to about 12s on Linux) no longer delays flow eviction or shutdown.
+- An access point offering only FT/PSK and FT/SAE is labelled mixed WPA2/WPA3 instead of WPA3-only.
+
 ### Changed
 
 - Redesigned the dashboard, using the way Little Snitch, Sniffnet, ntopng, Fing, Pi-hole, GlassWire, and Apple's App Privacy Report present network activity as reference. The simple view now has:

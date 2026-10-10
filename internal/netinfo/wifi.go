@@ -219,7 +219,7 @@ func parseIWScanSecurity(out, bssid string) string {
 	case has("OWE"):
 		return "OWE"
 	case has("SAE") || has("FT/SAE"):
-		if has("PSK") {
+		if has("PSK") || has("FT/PSK") {
 			return "WPA2_WPA3_PSK"
 		}
 		return "WPA3_SAE"
