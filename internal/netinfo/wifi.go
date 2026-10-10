@@ -33,14 +33,20 @@ const redacted = "<redacted>"
 // otherwise leave WiFi reporting disabled for the life of the process.
 func runWiFiCmd(name string, args ...string) (string, bool) {
 	for range 2 { // one retry to absorb a transient error
-		ctx, cancel := context.WithTimeout(context.Background(), 4*time.Second)
-		out, err := exec.CommandContext(ctx, name, args...).Output()
-		cancel()
-		if err == nil {
-			return string(out), true
+		if out, ok := runWiFiCmdOnce(name, args...); ok {
+			return out, true
 		}
 	}
 	return "", false
+}
+
+// runWiFiCmdOnce is runWiFiCmd without the retry, for best-effort lookups that
+// may fail deterministically (no permission, unsupported driver) on every poll.
+func runWiFiCmdOnce(name string, args ...string) (string, bool) {
+	ctx, cancel := context.WithTimeout(context.Background(), 4*time.Second)
+	defer cancel()
+	out, err := exec.CommandContext(ctx, name, args...).Output()
+	return string(out), err == nil
 }
 
 // LookupWiFi reports the wireless network on the named interface, or nil if the
@@ -69,9 +75,11 @@ func LookupWiFi(name string) *WiFi {
 		w := parseIWLink(out)
 		if w.Connected {
 			// `iw link` has no cipher, so read it from the cached scan entry of
-			// the associated BSS. A miss leaves Security empty (unknown), which
-			// the dashboard treats as "no warning" rather than "open".
-			if dump, ok := runWiFiCmd("iw", "dev", name, "scan", "dump"); ok {
+			// the associated BSS. cfg80211 keeps that entry current from the
+			// AP's beacons while associated, so it is not a stale scan result.
+			// A miss leaves Security empty (unknown), which the dashboard
+			// treats as "no warning" rather than "open".
+			if dump, ok := runWiFiCmdOnce("iw", "dev", name, "scan", "dump"); ok {
 				w.Security = parseIWScanSecurity(dump, w.BSSID)
 			}
 		}
