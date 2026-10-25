@@ -6,6 +6,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+### Changed
+
+- The dashboard listens on `127.0.0.1:8080` by default instead of `:8080`. It shows every device's DNS names and SNI without authentication, so it is no longer reachable from the network unless you pass `-listen` with a non-loopback address. wtfi3 logs a warning when the dashboard is exposed.
+
+### Security
+
+- While bound to loopback, the dashboard refuses requests whose `Host` header is not `localhost`, `127.0.0.1`, or `::1`. This stops a web page from reading `/api/state` through DNS rebinding.
+
 ## [0.7.1] - 2026-10-25
 
 ### Security

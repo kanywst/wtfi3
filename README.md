@@ -89,6 +89,8 @@ Then open <http://localhost:8080>. The header has two toggles: a view toggle and
   - A **card per device** with a device-type icon (guessed from the vendor and traffic; click it to correct), live up/down rate, a tracker badge (green 0, amber 1 to 4, red 5 or more), a one-minute activity timeline, and service chips. Give a device a nickname with ✎.
 - **Detailed view** shows the raw devices, top flows, and DNS tables.
 
+The dashboard listens on `127.0.0.1` only, because it shows every device's DNS names and destinations without a password. While it is bound to loopback, requests whose `Host` header is not `localhost`, `127.0.0.1`, or `::1` are refused, so a web page cannot read it through DNS rebinding. To open it from another machine, prefer an SSH tunnel (`ssh -L 8080:127.0.0.1:8080 <host>`). `-listen 0.0.0.0:8080` exposes it to everyone who can reach the host, and wtfi3 logs a warning when you do.
+
 ### Flags
 
 | Flag | Default | Meaning |
@@ -98,7 +100,7 @@ Then open <http://localhost:8080>. The header has two toggles: a view toggle and
 | `-i-own-this-network` | `false` | Acknowledge you own or are authorized to test this network. Required for `-spoof`. |
 | `-w` | (off) | Also write captured packets to this `.pcap` file. |
 | `-r` | (off) | Read packets from a `.pcap` file instead of a live interface (no root). |
-| `-listen` | `:8080` | Dashboard listen address. |
+| `-listen` | `127.0.0.1:8080` | Dashboard listen address. Loopback only by default; see below. |
 | `-scan` | (auto) | Override the LAN CIDR scanned when spoofing. |
 | `-snaplen` | `262144` | Capture snap length. |
 | `-version` | | Print version and exit. |
