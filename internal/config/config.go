@@ -25,7 +25,7 @@ func Parse(args []string) (*Config, error) {
 	fs := flag.NewFlagSet("wtfi3", flag.ContinueOnError)
 	c := &Config{}
 	fs.StringVar(&c.Iface, "i", "en0", "capture interface")
-	fs.StringVar(&c.Listen, "listen", ":8080", "dashboard listen address")
+	fs.StringVar(&c.Listen, "listen", "127.0.0.1:8080", "dashboard listen address (use 0.0.0.0:8080 to expose it to the network)")
 	fs.BoolVar(&c.Spoof, "spoof", false, "ARP-spoof the LAN to capture other devices' flows (requires -i-own-this-network)")
 	fs.BoolVar(&c.OwnNetwork, "i-own-this-network", false, "acknowledge you own or are authorized to test this network (required for -spoof)")
 	fs.IntVar(&c.Snaplen, "snaplen", 262144, "capture snaplen")

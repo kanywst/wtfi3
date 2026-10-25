@@ -8,7 +8,7 @@
 //	wtfi3 -r cap.pcap                       # offline replay (no root)
 //
 // TLS payloads are never decrypted; only metadata (endpoints, volume, DNS, SNI)
-// is shown at http://localhost:8080.
+// is shown at http://localhost:8080 (loopback only unless -listen says otherwise).
 package main
 
 import (
@@ -97,6 +97,9 @@ func run() error {
 		_ = srv.Shutdown(shutCtx)
 	}()
 	slog.Info("dashboard serving", "addr", cfg.Listen, "spoof", cfg.Spoof)
+	if !web.IsLoopback(cfg.Listen) {
+		slog.Warn("dashboard is reachable from the network; anyone who can connect sees every captured device, DNS name, and SNI", "addr", cfg.Listen)
+	}
 
 	capErr := make(chan error, 1)
 	go func() {
