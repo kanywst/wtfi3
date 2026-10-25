@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+## [0.8.0] - 2026-10-25
+
 ### Changed
 
 - The dashboard listens on `127.0.0.1:8080` by default instead of `:8080`. It shows every device's DNS names and SNI without authentication, so it is no longer reachable from the network unless you pass `-listen` with a non-loopback address. wtfi3 logs a warning when the dashboard is exposed.
@@ -148,7 +150,8 @@ These features were merged after 0.5.0 and first shipped in this release. Given 
 - Optional packet dump to `.pcap` (`-w`) for analysis in Wireshark.
 - Dashboard internationalization: English default with a Japanese toggle.
 
-[Unreleased]: https://github.com/kanywst/wtfi3/compare/v0.7.1...HEAD
+[Unreleased]: https://github.com/kanywst/wtfi3/compare/v0.8.0...HEAD
+[0.8.0]: https://github.com/kanywst/wtfi3/compare/v0.7.1...v0.8.0
 [0.7.1]: https://github.com/kanywst/wtfi3/compare/v0.7.0...v0.7.1
 [0.7.0]: https://github.com/kanywst/wtfi3/compare/v0.6.0...v0.7.0
 [0.6.0]: https://github.com/kanywst/wtfi3/compare/v0.5.1...v0.6.0
