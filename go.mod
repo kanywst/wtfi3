@@ -4,7 +4,7 @@ go 1.25.0
 
 toolchain go1.26.10
 
-require github.com/gopacket/gopacket v1.7.4
+require github.com/gopacket/gopacket v1.7.7
 
 require (
 	golang.org/x/net v0.56.0 // indirect
