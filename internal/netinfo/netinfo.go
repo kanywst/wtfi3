@@ -45,6 +45,6 @@ func Lookup(name string) (*Self, error) {
 	}
 	return &Self{
 		Name: name, IP: ip, MAC: ifc.HardwareAddr, Mask: mask, Nets: nets,
-		Gateway: defaultGateway(), WiFi: LookupWiFi(name),
+		Gateway: defaultGateway(name), WiFi: LookupWiFi(name),
 	}, nil
 }

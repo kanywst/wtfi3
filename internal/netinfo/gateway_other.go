@@ -6,4 +6,4 @@ import "net"
 
 // defaultGateway is unsupported on this platform; spoofing refuses to run
 // without a gateway, so returning nil keeps passive capture working.
-func defaultGateway() net.IP { return nil }
+func defaultGateway(_ string) net.IP { return nil }

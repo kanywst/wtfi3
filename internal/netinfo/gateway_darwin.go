@@ -7,7 +7,9 @@ import (
 )
 
 // defaultGateway parses the system default route from macOS/BSD `route` output.
-func defaultGateway() net.IP {
+// iface is not used: `route -n get default` already answers for the primary
+// interface, which is the one wtfi3 captures on by default.
+func defaultGateway(_ string) net.IP {
 	out, err := exec.Command("route", "-n", "get", "default").Output()
 	if err != nil {
 		return nil
