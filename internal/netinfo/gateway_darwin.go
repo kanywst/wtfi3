@@ -6,9 +6,17 @@ import (
 	"strings"
 )
 
-// defaultGateway parses the system default route from macOS/BSD `route` output.
-func defaultGateway() net.IP {
-	out, err := exec.Command("route", "-n", "get", "default").Output()
+// defaultGateway parses the default route for iface from macOS/BSD `route`
+// output. With an interface, `-ifscope` asks for that interface's default
+// route, so `-i en0` on a Mac whose primary route is Ethernet gets the Wi-Fi
+// gateway, not the Ethernet one. No match returns nil rather than another
+// interface's gateway.
+func defaultGateway(iface string) net.IP {
+	args := []string{"-n", "get", "default"}
+	if iface != "" {
+		args = []string{"-n", "get", "-ifscope", iface, "default"}
+	}
+	out, err := exec.Command("route", args...).Output()
 	if err != nil {
 		return nil
 	}
