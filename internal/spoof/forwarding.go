@@ -15,6 +15,9 @@ const (
 // The returned function is never nil, so callers can defer it unconditionally.
 func enableForwarding() func() {
 	prev, ok := readForwarding()
+	if ok && prev == forwardingOn {
+		slog.Info("ip forwarding was already on; leaving it on at exit")
+	}
 	if err := writeForwarding(forwardingOn); err != nil {
 		slog.Warn("could not enable ip forwarding", "err", err)
 	}
