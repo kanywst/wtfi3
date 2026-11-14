@@ -4,8 +4,6 @@ package netinfo
 import (
 	"fmt"
 	"net"
-	"os/exec"
-	"strings"
 )
 
 // Self describes the capturing host's view of its network.
@@ -49,19 +47,4 @@ func Lookup(name string) (*Self, error) {
 		Name: name, IP: ip, MAC: ifc.HardwareAddr, Mask: mask, Nets: nets,
 		Gateway: defaultGateway(), WiFi: LookupWiFi(name),
 	}, nil
-}
-
-// defaultGateway parses the system default route (macOS/BSD `route` output).
-func defaultGateway() net.IP {
-	out, err := exec.Command("route", "-n", "get", "default").Output()
-	if err != nil {
-		return nil
-	}
-	for _, line := range strings.Split(string(out), "\n") {
-		fields := strings.Fields(line)
-		if len(fields) == 2 && fields[0] == "gateway:" {
-			return net.ParseIP(fields[1]).To4()
-		}
-	}
-	return nil
 }

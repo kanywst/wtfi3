@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"log/slog"
 	"net"
-	"os/exec"
 	"sync"
 	"time"
 
@@ -35,6 +34,7 @@ type Spoofer struct {
 	targets map[string]net.HardwareAddr
 	wg      sync.WaitGroup
 	stopOne sync.Once
+	restFwd func() // restores the prior IP-forwarding setting on Stop
 }
 
 // Start begins discovery and poisoning. Goroutines stop when ctx is canceled
@@ -70,7 +70,7 @@ func Start(ctx context.Context, self *netinfo.Self, scanCIDR string, store Store
 	self.GwMAC = gwMAC
 	slog.Info("gateway resolved", "ip", self.Gateway.String(), "mac", gwMAC.String())
 
-	setForwarding(true)
+	sp.restFwd = enableForwarding()
 
 	network := scanCIDR
 	if network == "" {
@@ -88,7 +88,9 @@ func (sp *Spoofer) Stop() {
 		sp.cancel()
 		sp.wg.Wait()
 		sp.restore()
-		setForwarding(false)
+		if sp.restFwd != nil {
+			sp.restFwd()
+		}
 		sp.handle.Close()
 		slog.Info("spoof stopped, ARP caches restored")
 	})
@@ -230,16 +232,6 @@ func (sp *Spoofer) sendARP(op uint16, srcMAC net.HardwareAddr, srcIP net.IP, dst
 		return
 	}
 	_ = sp.handle.WritePacketData(buf.Bytes())
-}
-
-func setForwarding(on bool) {
-	v := "0"
-	if on {
-		v = "1"
-	}
-	if err := exec.Command("sysctl", "-w", "net.inet.ip.forwarding="+v).Run(); err != nil {
-		slog.Warn("could not set ip.forwarding", "value", v, "err", err)
-	}
 }
 
 func deriveCIDR(ip net.IP, mask net.IPMask) string {

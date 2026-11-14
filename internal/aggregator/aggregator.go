@@ -329,8 +329,11 @@ func (s *State) Snapshot() Snapshot {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	snap := Snapshot{
-		Iface: s.self.Name, SelfIP: s.self.IP.String(), Version: s.version, Spoof: s.spoof,
+		Iface: s.self.Name, Version: s.version, Spoof: s.spoof,
 		Uptime: time.Since(s.start).Seconds(), TotalMB: float64(s.total) / 1e6,
+	}
+	if s.self.IP != nil {
+		snap.SelfIP = s.self.IP.String()
 	}
 	if s.self.Gateway != nil {
 		snap.Gateway = s.self.Gateway.String()
