@@ -82,7 +82,7 @@ sequenceDiagram
     Note over W: 終了時に wtfi3 が正しい ARP を復元
 ```
 
-これを機能させるため、wtfi3 は稼働中に IP フォワーディング（macOS では `net.inet.ip.forwarding=1`）を有効化し、終了時に元へ戻します。さらに終了時に訂正 ARP を送出してネットワークをきれいに復旧させます。
+これを機能させるため、wtfi3 は稼働中に IP フォワーディング（macOS では `net.inet.ip.forwarding=1`、Linux では `/proc/sys/net/ipv4/ip_forward`）を有効化し、終了時に元へ戻します。さらに終了時に訂正 ARP を送出してネットワークをきれいに復旧させます。
 
 ## wtfi3 が各パケットで行うこと
 

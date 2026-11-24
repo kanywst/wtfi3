@@ -18,6 +18,7 @@ type Config struct {
 	PcapOut     string
 	ReadFile    string
 	ShowVersion bool
+	JSONOut     bool
 }
 
 // Parse builds a Config from the given argument list.
@@ -33,6 +34,7 @@ func Parse(args []string) (*Config, error) {
 	fs.StringVar(&c.PcapOut, "w", "", "also write captured packets to this .pcap file (open in Wireshark)")
 	fs.StringVar(&c.ReadFile, "r", "", "read packets from a .pcap file instead of a live interface (no root needed)")
 	fs.BoolVar(&c.ShowVersion, "version", false, "print version and exit")
+	fs.BoolVar(&c.JSONOut, "json", false, "print the aggregated state as JSON instead of serving the dashboard (one-shot with -r; on Ctrl-C with a live capture)")
 	if err := fs.Parse(args); err != nil {
 		return nil, err
 	}

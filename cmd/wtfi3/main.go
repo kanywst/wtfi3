@@ -6,6 +6,7 @@
 //	sudo wtfi3 -i en0 -spoof               # ARP-spoof MITM (own network only)
 //	sudo wtfi3 -i en0 -spoof -w cap.pcap   # also dump packets for Wireshark
 //	wtfi3 -r cap.pcap                       # offline replay (no root)
+//	wtfi3 -r cap.pcap -json                  # headless: print metadata as JSON
 //
 // TLS payloads are never decrypted; only metadata (endpoints, volume, DNS, SNI)
 // is shown at http://localhost:8080 (loopback only unless -listen says otherwise).
@@ -13,6 +14,7 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"log/slog"
 	"net"
@@ -87,6 +89,33 @@ func run() error {
 			return fmt.Errorf("spoof: %w", err)
 		}
 		defer sp.Stop()
+	}
+
+	// JSON mode is a one-shot, headless exporter: no dashboard, no DNS-name or
+	// SNI leak over a socket. It replays or captures, then writes the aggregated
+	// snapshot to stdout as JSON. With -r it stops when the file is drained; on a
+	// live capture it runs until Ctrl-C and emits what it has.
+	if cfg.JSONOut {
+		capErr := make(chan error, 1)
+		go func() {
+			capErr <- capture.Run(ctx, capture.Options{
+				Iface: cfg.Iface, Snaplen: cfg.Snaplen, ReadFile: cfg.ReadFile, PcapOut: cfg.PcapOut,
+			}, state)
+		}()
+		var capResult error
+		select {
+		case capResult = <-capErr:
+		case <-ctx.Done():
+		}
+		if capResult != nil {
+			return capResult
+		}
+		enc := json.NewEncoder(os.Stdout)
+		enc.SetIndent("", "  ")
+		if err := enc.Encode(state.Snapshot()); err != nil {
+			return fmt.Errorf("encode snapshot: %w", err)
+		}
+		return nil
 	}
 
 	srv := web.New(cfg.Listen, state)

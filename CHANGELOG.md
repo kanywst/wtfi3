@@ -6,6 +6,23 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+## [0.9.0] - 2026-11-25
+
+### Added
+
+- `-json` prints the aggregated metadata (devices, flows, DNS, SNI, Wi-Fi) as JSON instead of serving the dashboard, so a capture can be piped into `jq` or another tool. One-shot with `-r`; on Ctrl-C with a live capture. No dashboard is opened in this mode, so nothing is exposed over a socket.
+- `-spoof` works on Linux. The default gateway comes from `/proc/net/route` (falling back to `ip route show default`), and IP forwarding is turned on through `/proc/sys/net/ipv4/ip_forward` (falling back to `sysctl`) and restored on exit. Not yet tested on a live Linux network.
+
+### Fixed
+
+- `-spoof` targets the default gateway of the capture interface instead of the first default route on the machine. On Linux it picks the lowest-metric default on `-i`; on macOS it asks `route -n get -ifscope <iface> default`. With two uplinks (say `eth0` and `wlan0`), `-i wlan0 -spoof` could previously poison toward `eth0`'s gateway.
+- The Linux `ip route` fallback no longer gives up on an IPv6 `via` line before reaching the IPv4 default.
+- Offline replay omits `self_ip` instead of reporting `"<nil>"`.
+
+### Security
+
+- Release binaries are built with Go 1.26.11, which fixes a Go standard library vulnerability reachable from wtfi3 on 1.26.10 (net/http: GO-2026-6859). The minimum Go version for building from source is unchanged.
+
 ## [0.8.0] - 2026-10-25
 
 ### Changed
@@ -150,7 +167,8 @@ These features were merged after 0.5.0 and first shipped in this release. Given 
 - Optional packet dump to `.pcap` (`-w`) for analysis in Wireshark.
 - Dashboard internationalization: English default with a Japanese toggle.
 
-[Unreleased]: https://github.com/kanywst/wtfi3/compare/v0.8.0...HEAD
+[Unreleased]: https://github.com/kanywst/wtfi3/compare/v0.9.0...HEAD
+[0.9.0]: https://github.com/kanywst/wtfi3/compare/v0.8.0...v0.9.0
 [0.8.0]: https://github.com/kanywst/wtfi3/compare/v0.7.1...v0.8.0
 [0.7.1]: https://github.com/kanywst/wtfi3/compare/v0.7.0...v0.7.1
 [0.7.0]: https://github.com/kanywst/wtfi3/compare/v0.6.0...v0.7.0

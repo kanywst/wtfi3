@@ -82,7 +82,7 @@ sequenceDiagram
     Note over W: on shutdown, wtfi3 restores correct ARP entries
 ```
 
-For this to work, wtfi3 enables IP forwarding (`net.inet.ip.forwarding=1` on macOS) while running and restores it on exit. It also sends corrective ARP replies on shutdown so the network heals cleanly.
+For this to work, wtfi3 enables IP forwarding (`net.inet.ip.forwarding=1` on macOS, `/proc/sys/net/ipv4/ip_forward` on Linux) while running and restores it on exit. It also sends corrective ARP replies on shutdown so the network heals cleanly.
 
 ## What wtfi3 does with each packet
 
