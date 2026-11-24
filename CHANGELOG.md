@@ -10,6 +10,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Added
 
+- `-json` prints the aggregated metadata (devices, flows, DNS, SNI, Wi-Fi) as JSON instead of serving the dashboard, so a capture can be piped into `jq` or another tool. One-shot with `-r`; on Ctrl-C with a live capture. No dashboard is opened in this mode, so nothing is exposed over a socket.
 - `-spoof` works on Linux. The default gateway comes from `/proc/net/route` (falling back to `ip route show default`), and IP forwarding is turned on through `/proc/sys/net/ipv4/ip_forward` (falling back to `sysctl`) and restored on exit. Not yet tested on a live Linux network.
 
 ### Fixed
