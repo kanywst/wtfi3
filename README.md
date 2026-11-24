@@ -78,6 +78,9 @@ sudo ./wtfi3 -i en0 -spoof -i-own-this-network -w capture.pcap
 
 # Offline replay of a saved capture (no root required).
 ./wtfi3 -r capture.pcap
+
+# Headless: print the aggregated metadata as JSON and exit, no dashboard.
+./wtfi3 -r capture.pcap -json | jq '.flows[] | {src, sni, bytes}'
 ```
 
 Then open <http://localhost:8080>. The header has two toggles: a view toggle and a language toggle (English default, Japanese available).
@@ -100,6 +103,7 @@ The dashboard listens on `127.0.0.1` only, because it shows every device's DNS n
 | `-i-own-this-network` | `false` | Acknowledge you own or are authorized to test this network. Required for `-spoof`. |
 | `-w` | (off) | Also write captured packets to this `.pcap` file. |
 | `-r` | (off) | Read packets from a `.pcap` file instead of a live interface (no root). |
+| `-json` | `false` | Print the aggregated state as JSON instead of serving the dashboard. One-shot with `-r`; on Ctrl-C with a live capture. |
 | `-listen` | `127.0.0.1:8080` | Dashboard listen address. Loopback only by default; see below. |
 | `-scan` | (auto) | Override the LAN CIDR scanned when spoofing. |
 | `-snaplen` | `262144` | Capture snap length. |

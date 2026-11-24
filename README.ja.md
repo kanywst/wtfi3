@@ -78,6 +78,9 @@ sudo ./wtfi3 -i en0 -spoof -i-own-this-network -w capture.pcap
 
 # 保存済みキャプチャのオフライン再生（root 不要）。
 ./wtfi3 -r capture.pcap
+
+# ヘッドレス: 集計したメタデータを JSON で出力して終了（ダッシュボードなし）。
+./wtfi3 -r capture.pcap -json | jq '.flows[] | {src, sni, bytes}'
 ```
 
 その後 <http://localhost:8080> を開きます。ヘッダーに表示トグルと言語トグル（既定は英語、日本語も選択可）があります。
@@ -100,6 +103,7 @@ sudo ./wtfi3 -i en0 -spoof -i-own-this-network -w capture.pcap
 | `-i-own-this-network` | `false` | 自分が所有または許可を得たネットワークであることの承認。`-spoof` に必須。 |
 | `-w` | (無効) | 捕捉パケットをこの `.pcap` ファイルにも書き出す。 |
 | `-r` | (無効) | ライブではなく `.pcap` ファイルから読み込む（root 不要）。 |
+| `-json` | `false` | ダッシュボードを立てず、集計した状態を JSON で出力。`-r` では一回限り、ライブキャプチャでは Ctrl-C 時に出力。 |
 | `-listen` | `127.0.0.1:8080` | ダッシュボードの待ち受けアドレス。既定はループバックのみ（下記参照）。 |
 | `-scan` | (自動) | スプーフ時にスキャンする LAN CIDR を上書き。 |
 | `-snaplen` | `262144` | キャプチャのスナップ長。 |

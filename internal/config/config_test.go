@@ -47,3 +47,24 @@ func TestListenDefaultsToLoopback(t *testing.T) {
 		t.Errorf("Listen = %q, want 127.0.0.1:8080", c.Listen)
 	}
 }
+
+// JSON mode is off by default and must not pull in any acknowledgement.
+func TestJSONDefaultsOff(t *testing.T) {
+	c, err := Parse(nil)
+	if err != nil {
+		t.Fatalf("unexpected err %v", err)
+	}
+	if c.JSONOut {
+		t.Error("JSONOut defaulted to true")
+	}
+}
+
+func TestJSONFlagParses(t *testing.T) {
+	c, err := Parse([]string{"-r", "cap.pcap", "-json"})
+	if err != nil {
+		t.Fatalf("unexpected err %v", err)
+	}
+	if !c.JSONOut || !c.Offline() {
+		t.Fatalf("got %+v", c)
+	}
+}
